@@ -268,11 +268,8 @@ CI runs all of these on every pull request. The integration test checks that lab
 [`index.html`](index.html) ([GitHub Pages](https://yusufarbc.github.io/webvuln-runner/)) renders the catalog with search and category filters. It also shows the command that starts each lab. It is static and read-only on purpose: a browser page cannot safely control your Docker daemon, and exposing the Docker socket to one would hand over root on your machine.
 
 ## Roadmap
-- Security test profiles. Each one starts a lab, runs a tool against it and collects a report:
-  - a DAST scan with OWASP ZAP
-  - secret scanning against WrongSecrets
-  - comparing scanners on OWASP Benchmark
-- JSON/JUnit output and short-lived labs for CI pipelines
+WebVuln-Runner runs labs; it does not scan, test or modify them. The labs' code, images and content belong to their upstream projects. The tool only decides how they run: on loopback, on their own network, with resource limits, and without services that would endanger the host.
+
 - Pin images that only publish `latest` by digest, and report when upstream changes them
 - `webvuln-runner reset <name>` to restart a lab with clean data
 - `webvuln-runner update` to pull newer catalog images
