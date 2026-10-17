@@ -143,3 +143,122 @@ create_call() { grep '^create ' "$STUB_LOG"; }
   run wvr_default_name dvga
   [ "$output" = "wvr-dvga-3" ]
 }
+
+@test "each image lab gets its own labelled network" {
+  run wvr_up dsvpwa wvr-dsvpwa 127.0.0.1
+  [ "$status" -eq 0 ]
+  grep -q '^network create --label io.webvuln-runner.managed=true --label io.webvuln-runner.lab=dsvpwa --label io.webvuln-runner.instance=wvr-dsvpwa wvr-wvr-dsvpwa$' "$STUB_LOG"
+  [[ "$(create_call)" == *"--network wvr-wvr-dsvpwa"* ]]
+}
+
+@test "up refuses when the lab's network name is already taken" {
+  export STUB_NET_INSPECT_RC=0
+  run wvr_up dsvpwa wvr-dsvpwa 127.0.0.1
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"network named 'wvr-wvr-dsvpwa' already exists"* ]]
+  [ -z "$(create_call)" ]
+}
+
+@test "containers are hardened: no-new-privileges, pids, memory and cpu limits" {
+  run wvr_up dsvpwa wvr-dsvpwa 127.0.0.1
+  c="$(create_call)"
+  [[ "$c" == *"--security-opt no-new-privileges:true"* ]]
+  [[ "$c" == *"--pids-limit 1024"* ]]
+  [[ "$c" == *"--memory 512m"* ]]     # ram_mb 128 -> at least 512
+  [[ "$c" == *"--cpus 2"* ]]
+  : >"$STUB_LOG"
+  run wvr_up webgoat wvr-webgoat 127.0.0.1
+  [[ "$(create_call)" == *"--memory 2048m"* ]]   # 2 x ram_mb 1024
+}
+
+@test "cpu limit never exceeds the CPUs Docker has" {
+  export STUB_NCPU=1
+  run wvr_up dsvpwa wvr-dsvpwa 127.0.0.1
+  [[ "$(create_call)" == *"--cpus 1"* ]]
+}
+
+@test "hardening can be switched off per lab in the catalog" {
+  export WVR_CATALOG
+  WVR_CATALOG="$(write_catalog '[{"id":"soft","name":"Soft","description":"d","category":"web","type":"image","image":"x/soft:1","hardening":false,"ports":[{"name":"web","container":80,"host":8001}]}]')"
+  run wvr_up soft soft 127.0.0.1
+  [ "$status" -eq 0 ]
+  c="$(create_call)"
+  [[ "$c" != *"no-new-privileges"* ]]
+  [[ "$c" != *"--memory"* ]]
+  [[ "$c" == *"--network wvr-soft"* ]]
+}
+
+@test "rm also removes the lab's network" {
+  add_managed aaa111 lab-one dsvpwa running http://127.0.0.1:65413/
+  export STUB_NET_IDS="n0000001"
+  run wvr_rm lab-one
+  [ "$status" -eq 0 ]
+  grep -q '^network ls -q --filter label=io.webvuln-runner.managed=true --filter label=io.webvuln-runner.instance=lab-one$' "$STUB_LOG"
+  grep -qx 'network rm n0000001' "$STUB_LOG"
+}
+
+@test "a lab that fails to start leaves no network behind" {
+  export STUB_START_RC=1 STUB_NET_IDS="n0000001"
+  run wvr_up dsvpwa wvr-dsvpwa 127.0.0.1
+  [ "$status" -eq 1 ]
+  grep -qx 'network rm n0000001' "$STUB_LOG"
+}
+
+@test "states: failed, unhealthy, starting, restarting and a normal stop" {
+  add_managed c1 crashed dsvpwa exited "" "" "Exited (1) 5 seconds ago"
+  add_managed c2 sick webgoat running "" "" "Up 3 minutes (unhealthy)"
+  add_managed c3 booting webgoat running "" "" "Up 4 seconds (health: starting)"
+  add_managed c4 looping dvga restarting "" "" "Restarting (2) 1 second ago"
+  add_managed c5 halted dvga exited "" "" "Exited (137) 1 minute ago"
+  add_managed c6 halted2 dvga exited "" "" "Exited (0) 1 minute ago"
+  add_managed c7 fine dvga running "" "" "Up 1 hour (healthy)"
+  run wvr_instances
+  [[ "$output" == *"$(printf 'crashed\tdsvpwa\tfailed')"* ]]
+  [[ "$output" == *"$(printf 'sick\twebgoat\tunhealthy')"* ]]
+  [[ "$output" == *"$(printf 'booting\twebgoat\tstarting')"* ]]
+  [[ "$output" == *"$(printf 'looping\tdvga\trestarting')"* ]]
+  [[ "$output" == *"$(printf 'halted\tdvga\tstopped')"* ]]
+  [[ "$output" == *"$(printf 'halted2\tdvga\tstopped')"* ]]
+  [[ "$output" == *"$(printf 'fine\tdvga\trunning')"* ]]
+}
+
+@test "one failed container marks the whole compose lab failed" {
+  add_managed c1 stack test-compose running http://127.0.0.1:18090/ stack "Up 2 minutes"
+  add_managed c2 stack test-compose exited "" stack "Exited (3) 10 seconds ago"
+  run wvr_instances
+  [ "$output" = "$(printf 'stack\ttest-compose\tfailed\thttp://127.0.0.1:18090/')" ]
+}
+
+@test "stop_all and rm_all only walk managed labs" {
+  add_managed aaa111 lab-one dsvpwa running http://127.0.0.1:65413/
+  add_managed bbb222 lab-two vampi running http://127.0.0.1:5000/
+  echo "postgres" >"$STUB_DIR/names"
+  run wvr_stop_all
+  [ "$status" -eq 0 ]
+  grep -qx 'stop aaa111' "$STUB_LOG"
+  grep -qx 'stop bbb222' "$STUB_LOG"
+  run wvr_rm_all --volumes
+  grep -qx 'rm -f -v aaa111' "$STUB_LOG"
+  grep -qx 'rm -f -v bbb222' "$STUB_LOG"
+  ! grep -q 'postgres' <(grep -E '^(stop|rm) ' "$STUB_LOG") || false
+}
+
+@test "a non-zero exit after stopping through WebVuln-Runner is not a failure" {
+  add_managed g1 grpc-lab grpc-goat exited "" grpc-lab "Exited (2) 3 seconds ago"
+  run wvr_instances
+  [[ "$output" == *"$(printf 'grpc-lab\tgrpc-goat\tfailed')"* ]]
+  run wvr_stop grpc-lab
+  run wvr_instances
+  [[ "$output" == *"$(printf 'grpc-lab\tgrpc-goat\tstopped')"* ]]
+  run wvr_start grpc-lab
+  run wvr_instances
+  [[ "$output" == *"$(printf 'grpc-lab\tgrpc-goat\tfailed')"* ]]
+}
+
+@test "rm forgets that a lab was stopped" {
+  add_managed a1 lab-one dsvpwa exited "" "" "Exited (0) 1 second ago"
+  run wvr_stop lab-one
+  [ -e "$WVR_STATE_DIR/stopped/lab-one" ]
+  run wvr_rm lab-one
+  [ ! -e "$WVR_STATE_DIR/stopped/lab-one" ]
+}

@@ -49,6 +49,7 @@ services:
     build: { <<: *shepherd-build, target: web }
     image: webvuln-runner/security-shepherd-web:cff3958
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-8445}:8443"
     depends_on: [db, mongo]
@@ -57,6 +58,7 @@ services:
     build: { <<: *shepherd-build, target: db }
     image: webvuln-runner/security-shepherd-db:cff3958
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     environment:
       MARIADB_ROOT_PASSWORD: CowSaysMoo
     volumes:
@@ -66,6 +68,7 @@ services:
     build: { <<: *shepherd-build, target: mongo }
     image: webvuln-runner/security-shepherd-mongo:cff3958
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     volumes:
       - mongo-data:/data/db
 

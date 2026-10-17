@@ -13,6 +13,7 @@ services:
   dvws-mongo:
     image: mongo:4.0.4
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     healthcheck:
       test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
       interval: 30s
@@ -23,6 +24,7 @@ services:
   dvws-mysql:
     image: mysql:8
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     environment:
       MYSQL_ROOT_PASSWORD: mysecretpassword
       MYSQL_DATABASE: dvws_sqldb
@@ -37,6 +39,7 @@ services:
     build: https://github.com/snoopysecurity/dvws-node.git#eb6e2886f2206b88bf709fe1fa311adc3ae3c34f
     image: webvuln-runner/dvws-node:eb6e288
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-8089}:80"
     command: sh -c "node scripts/seed-database.js && npm start"

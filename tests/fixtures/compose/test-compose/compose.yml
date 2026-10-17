@@ -16,8 +16,10 @@ services:
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-18090}:80"
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     depends_on: [backend]
 
   backend:
     image: nginx:1.27-alpine
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]

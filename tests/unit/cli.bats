@@ -75,3 +75,23 @@ teardown() { wvr_test_teardown; }
   [ "$status" -eq 1 ]
   ! grep -q '^rm ' "$STUB_LOG" || false
 }
+
+@test "rm --all requires --yes" {
+  run "$WVR_CLI" rm --all
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"add --yes to confirm"* ]]
+  ! grep -q '^rm ' "$STUB_LOG" || false
+}
+
+@test "rm --all and a lab name cannot be combined" {
+  run "$WVR_CLI" rm wvr-x --all --yes
+  [ "$status" -eq 2 ]
+}
+
+@test "stop --all and stats work with no labs" {
+  run "$WVR_CLI" stop --all
+  [ "$status" -eq 0 ]
+  run "$WVR_CLI" stats
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"No running labs"* ]]
+}

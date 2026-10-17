@@ -112,3 +112,12 @@ lab() { # id host [extra json fields]
   [ "$status" -eq 1 ]
   [[ "$output" == *"at most 50 characters"* ]]
 }
+
+@test "hardening, mem_limit_mb and cpus are type checked" {
+  f="$(write_catalog '[{"id":"a","name":"A","description":"d","category":"web","type":"image","image":"x/a:1","hardening":"no","mem_limit_mb":10,"cpus":0,"ports":[{"name":"web","container":80,"host":8001}]}]')"
+  run wvr_catalog_validate "$f"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"hardening must be true or false"* ]]
+  [[ "$output" == *"mem_limit_mb must be a number >= 64"* ]]
+  [[ "$output" == *"cpus must be a positive number"* ]]
+}

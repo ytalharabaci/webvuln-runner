@@ -14,6 +14,7 @@ services:
     build: https://github.com/OWASP/NodeGoat.git#c5cb68a7084e4ae7dcc60e6a98768720a81841e8
     image: webvuln-runner/nodegoat:c5cb68a
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     environment:
       NODE_ENV: ""
       MONGODB_URI: mongodb://mongo:27017/nodegoat
@@ -25,4 +26,5 @@ services:
   mongo:
     image: mongo:4.4
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     user: mongodb

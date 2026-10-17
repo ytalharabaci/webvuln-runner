@@ -17,6 +17,9 @@ WVR_LABEL_HEALTH="${WVR_LABEL_NS}.health"
 WVR_BIND="${WVR_BIND:-127.0.0.1}"
 WVR_HEALTH_TIMEOUT="${WVR_HEALTH_TIMEOUT:-90}"
 
+# Remembers which labs were stopped on purpose, so their exit codes are not reported as failures.
+WVR_STATE_DIR="${WVR_STATE_DIR:-${XDG_STATE_HOME:-${HOME:-/tmp}/.local/state}/webvuln-runner}"
+
 wvr_info() { printf '%s\n' "$*"; }
 wvr_warn() { printf 'warning: %s\n' "$*" >&2; }
 wvr_err()  { printf 'error: %s\n' "$*" >&2; }

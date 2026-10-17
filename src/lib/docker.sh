@@ -6,26 +6,58 @@ wvr_ps_managed() {
   docker ps -a --filter "label=${WVR_LABEL_MANAGED}=true" "$@"
 }
 
-# One line per managed container: id, instance, lab, state, url, compose project
+# One line per managed container: id, instance, lab, state, url, compose project, status
+# ("status" is Docker's human text, e.g. "Up 2 minutes (healthy)" or "Exited (1) 3 seconds ago").
 wvr_containers() {
-  wvr_ps_managed "$@" --format "{{.ID}}\t{{.Label \"$WVR_LABEL_INSTANCE\"}}\t{{.Label \"$WVR_LABEL_LAB\"}}\t{{.State}}\t{{.Label \"$WVR_LABEL_URL\"}}\t{{.Label \"com.docker.compose.project\"}}"
+  wvr_ps_managed "$@" --format "{{.ID}}\t{{.Label \"$WVR_LABEL_INSTANCE\"}}\t{{.Label \"$WVR_LABEL_LAB\"}}\t{{.State}}\t{{.Label \"$WVR_LABEL_URL\"}}\t{{.Label \"com.docker.compose.project\"}}\t{{.Status}}"
 }
 
-# One line per instance: name, lab, state (running | stopped | partial n/m), url
+# Labs stopped through WebVuln-Runner. Many apps exit non-zero when stopped (Go services
+# exit 2, some Node apps 1), so an exit code alone does not tell a stop from a crash.
+wvr_mark_stopped()  { mkdir -p "$WVR_STATE_DIR/stopped" 2>/dev/null && : >"$WVR_STATE_DIR/stopped/$1"; }
+wvr_clear_stopped() { rm -f "$WVR_STATE_DIR/stopped/$1" 2>/dev/null; return 0; }
+wvr_stopped_list() {
+  local f
+  for f in "$WVR_STATE_DIR"/stopped/*; do [[ -e "$f" ]] && printf '%s ' "${f##*/}"; done
+  return 0
+}
+
+# One line per instance: name, lab, state, url.
+# State is the most important one among its containers:
+#   failed > unhealthy > restarting > starting > partial n/m > running | stopped
+# A container that exited with 0, 137 or 143 counts as stopped, and so does any container
+# of a lab WebVuln-Runner stopped itself. Any other exit code means it failed.
 wvr_instances() {
-  wvr_containers | awk -F'\t' '
+  wvr_containers | awk -F'\t' -v stopped=" $(wvr_stopped_list) " '
+    function rank(s) { return s == "failed" ? 4 : s == "unhealthy" ? 3 : s == "restarting" ? 2 : s == "starting" ? 1 : 0 }
     $2 == "" { next }
     {
       k = $2
-      if (!(k in lab)) { order[++n] = k; lab[k] = $3 }
+      if (!(k in lab)) { order[++n] = k; lab[k] = $3; worst[k] = "" }
       total[k]++
-      if ($4 == "running") run[k]++
+      cs = "stopped"
+      if ($4 == "running") {
+        cs = "running"
+        if ($7 ~ /\(unhealthy\)/) cs = "unhealthy"
+        else if ($7 ~ /health: starting/) cs = "starting"
+      } else if ($4 == "restarting") {
+        cs = "restarting"
+      } else if ($4 == "exited" || $4 == "dead") {
+        code = $7
+        if (match(code, /\([0-9]+\)/)) {
+          code = substr(code, RSTART + 1, RLENGTH - 2)
+          if (code != "0" && code != "137" && code != "143" && index(stopped, " " k " ") == 0) cs = "failed"
+        }
+      }
+      if (cs == "running" || cs == "unhealthy" || cs == "starting") run[k]++
+      if (rank(cs) > rank(worst[k])) worst[k] = cs
       if ($5 != "" && url[k] == "") url[k] = $5
     }
     END {
       for (i = 1; i <= n; i++) {
         k = order[i]; r = run[k] + 0
-        s = (r == total[k]) ? "running" : (r == 0 ? "stopped" : "partial " r "/" total[k])
+        if (worst[k] != "" && worst[k] != "running" && worst[k] != "stopped") s = worst[k]
+        else s = (r == total[k]) ? "running" : (r == 0 ? "stopped" : "partial " r "/" total[k])
         printf "%s\t%s\t%s\t%s\n", k, lab[k], s, url[k]
       }
     }' | sort
@@ -183,6 +215,7 @@ wvr_up() {
     wvr_up_image "$id" "$name" "$bind" "$plan" "$url" "$health"
   fi || return 1
 
+  wvr_clear_stopped "$name"
   wvr_info "Lab '$name' ($id) started."
   while IFS=$'\t' read -r pname _ host scheme path; do
     wvr_info "  $pname: $(wvr_port_url "$bind" "$host" "$scheme" "$path")"
@@ -192,12 +225,41 @@ wvr_up() {
   fi
 }
 
+# Docker flags that limit what a lab container may do. Labs whose catalog entry sets
+# "hardening": false (because a test showed the lab breaks) get none of them.
+wvr_hardening_args() {
+  local id="$1" mem cpus ncpu
+  [[ "$(wvr_catalog_get "$id" 'if .hardening == false then "off" else "on" end')" == "on" ]] || return 0
+  mem="$(wvr_catalog_get "$id" '.mem_limit_mb // ([512, ((.ram_mb // 256) * 2)] | max)')"
+  cpus="$(wvr_catalog_get "$id" '.cpus // 2')"
+  # --cpus may not exceed the CPUs Docker sees.
+  ncpu="$(docker info --format '{{.NCPU}}' 2>/dev/null)"
+  if [[ "$ncpu" =~ ^[0-9]+$ ]] && awk -v c="$cpus" -v n="$ncpu" 'BEGIN { exit !(c > n) }'; then cpus="$ncpu"; fi
+  printf '%s\n' --security-opt no-new-privileges:true --pids-limit 1024 --memory "${mem}m" --cpus "$cpus"
+}
+
+# Each single-container lab gets its own bridge network, so labs cannot reach each other.
+wvr_network_name() { printf 'wvr-%s\n' "$1"; }
+
+wvr_rm_network() {
+  local ids
+  ids="$(docker network ls -q --filter "label=${WVR_LABEL_MANAGED}=true" --filter "label=${WVR_LABEL_INSTANCE}=$1")"
+  # shellcheck disable=SC2086
+  [[ -z "$ids" ]] || docker network rm $ids >/dev/null 2>&1
+}
+
 wvr_up_image() {
   local id="$1" name="$2" bind="$3" plan="$4" url="$5" health="$6"
-  local image workdir cid cport host kv
-  local -a args run_cmd
+  local image workdir cid cport host kv net
+  local -a args run_cmd hardening
 
   image="$(wvr_catalog_get "$id" .image)"
+  net="$(wvr_network_name "$name")"
+  if docker network inspect "$net" >/dev/null 2>&1; then
+    wvr_err "a Docker network named '$net' already exists"
+    return 1
+  fi
+  mapfile -t hardening < <(wvr_hardening_args "$id")
   args=(
     --name "$name"
     --label "${WVR_LABEL_MANAGED}=true"
@@ -205,6 +267,8 @@ wvr_up_image() {
     --label "${WVR_LABEL_INSTANCE}=$name"
     --label "${WVR_LABEL_URL}=$url"
     --label "${WVR_LABEL_HEALTH}=$health"
+    --network "$net"
+    "${hardening[@]}"
   )
   while IFS=$'\t' read -r _ cport host _; do
     args+=(-p "$bind:$host:$cport")
@@ -220,10 +284,18 @@ wvr_up_image() {
     wvr_info "Pulling $image ..."
     docker pull "$image" || { wvr_err "could not pull $image"; return 1; }
   fi
-  cid="$(docker create "${args[@]}" "$image" "${run_cmd[@]}")" || { wvr_err "could not create container '$name'"; return 1; }
+  docker network create \
+    --label "${WVR_LABEL_MANAGED}=true" --label "${WVR_LABEL_LAB}=$id" --label "${WVR_LABEL_INSTANCE}=$name" \
+    "$net" >/dev/null || { wvr_err "could not create network '$net'"; return 1; }
+  if ! cid="$(docker create "${args[@]}" "$image" "${run_cmd[@]}")"; then
+    wvr_err "could not create container '$name'"
+    wvr_rm_network "$name"
+    return 1
+  fi
   if ! docker start "$cid" >/dev/null; then
     wvr_err "container '$name' was created but failed to start; removing it"
     docker rm -f "$cid" >/dev/null 2>&1
+    wvr_rm_network "$name"
     return 1
   fi
 }
@@ -253,6 +325,7 @@ wvr_up_compose() {
 wvr_start() {
   local project ids
   wvr_require_instance "$1" || return 1
+  wvr_clear_stopped "$1"
   project="$(wvr_instance_project "$1")"
   if [[ -n "$project" ]]; then
     docker compose -p "$project" start
@@ -266,6 +339,7 @@ wvr_start() {
 wvr_stop() {
   local project ids
   wvr_require_instance "$1" || return 1
+  wvr_mark_stopped "$1"
   project="$(wvr_instance_project "$1")"
   if [[ -n "$project" ]]; then
     docker compose -p "$project" stop
@@ -291,7 +365,44 @@ wvr_rm() {
     ids="$(wvr_instance_ids "$name")"
     # shellcheck disable=SC2086
     if [[ "$volumes" == "--volumes" ]]; then docker rm -f -v $ids >/dev/null; else docker rm -f $ids >/dev/null; fi
+    wvr_rm_network "$name"
   fi
+  wvr_clear_stopped "$name"
+}
+
+# Bulk operations walk the managed instances only.
+wvr_stop_all() {
+  local name rc=0
+  for name in $(wvr_instances | cut -f1); do
+    if wvr_stop "$name" >/dev/null 2>&1; then wvr_info "stopped $name"; else wvr_err "could not stop $name"; rc=1; fi
+  done
+  return "$rc"
+}
+
+# wvr_rm_all [--volumes]
+wvr_rm_all() {
+  local name rc=0
+  for name in $(wvr_instances | cut -f1); do
+    if wvr_rm "$name" "${1:-}" >/dev/null 2>&1; then wvr_info "removed $name"; else wvr_err "could not remove $name"; rc=1; fi
+  done
+  return "$rc"
+}
+
+# CPU and memory of running managed containers (optionally of one instance).
+wvr_stats() {
+  local ids
+  if [[ -n "${1:-}" ]]; then
+    wvr_require_instance "$1" || return 1
+    ids="$(wvr_ps_managed -q --filter status=running --filter "label=${WVR_LABEL_INSTANCE}=$1")"
+  else
+    ids="$(wvr_ps_managed -q --filter status=running)"
+  fi
+  if [[ -z "$ids" ]]; then
+    wvr_info "No running labs."
+    return 0
+  fi
+  # shellcheck disable=SC2086
+  docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.PIDs}}' $ids
 }
 
 # wvr_logs <name> [lines]
@@ -363,7 +474,7 @@ wvr_status() {
   wvr_info "Name:      $name"
   wvr_info "Lab:       $lab ($(wvr_catalog_get "$lab" .name 2>/dev/null))"
   wvr_info "Container: $state"
-  if [[ "$state" == "stopped" ]]; then
+  if [[ "$state" == "stopped" || "$state" == "failed" ]]; then
     wvr_info "App:       not running"
   elif wvr_probe "$health"; then
     wvr_info "App:       ready"
@@ -377,4 +488,22 @@ wvr_status() {
     docker inspect --format \
       '{{$n := .Name}}{{range $p, $b := .NetworkSettings.Ports}}{{range $b}}  {{$n}} {{.HostIp}}:{{.HostPort}} -> {{$p}}{{"\n"}}{{end}}{{end}}' "$id"
   done | sed 's#  /#  #' | grep -v '^$'
+
+  if [[ "$state" != "stopped" && "$state" != "failed" ]]; then
+    wvr_info "Usage:"
+    wvr_stats "$name" | sed 's/^/  /'
+  fi
+
+  # Explain failures: which container exited with which code, and its last log lines.
+  if [[ "$state" == "failed" || "$state" == "unhealthy" || "$state" == "restarting" ]]; then
+    for id in $(wvr_instance_ids "$name"); do
+      local cname cstate code
+      IFS=$'\t' read -r cname cstate code < <(docker inspect --format \
+        '{{.Name}}{{"\t"}}{{.State.Status}}{{"\t"}}{{.State.ExitCode}}' "$id")
+      [[ "$cstate" == "running" && "$state" != "unhealthy" ]] && continue
+      wvr_info ""
+      wvr_info "${cname#/}: $cstate (exit code $code). Last log lines:"
+      docker logs --tail 20 "$id" 2>&1 | sed 's/^/  /'
+    done
+  fi
 }

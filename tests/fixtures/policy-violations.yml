@@ -1,0 +1,11 @@
+# Breaks every rule of scripts/check-compose-policy.sh; CI asserts the check rejects it.
+services:
+  bad:
+    image: nginx:1.27-alpine
+    container_name: fixed-name
+    privileged: true
+    pid: host
+    ports:
+      - "8080:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

@@ -30,6 +30,7 @@ services:
   crapi-identity:
     image: crapi/crapi-identity:latest
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     volumes:
       - ./keys:/app/keys
     environment:
@@ -73,6 +74,7 @@ services:
   crapi-community:
     image: crapi/crapi-community:latest
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     environment:
       <<: [*db-env, *mongo-env]
       LOG_LEVEL: INFO
@@ -97,6 +99,7 @@ services:
   crapi-workshop:
     image: crapi/crapi-workshop:latest
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     environment:
       <<: [*db-env, *mongo-env]
       LOG_LEVEL: INFO
@@ -125,6 +128,7 @@ services:
   crapi-chatbot:
     image: crapi/crapi-chatbot:latest
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     environment:
       <<: [*db-env, *mongo-env]
       TLS_ENABLED: "false"
@@ -145,6 +149,7 @@ services:
   crapi-web:
     image: crapi/crapi-web:latest
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-8888}:80"
     environment:
@@ -170,6 +175,7 @@ services:
   postgresdb:
     image: postgres:14
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     command: ["postgres", "-c", "max_connections=500"]
     environment:
       POSTGRES_USER: admin
@@ -189,6 +195,7 @@ services:
   mongodb:
     image: mongo:4.4
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: crapisecretpassword
@@ -207,6 +214,7 @@ services:
   chromadb:
     image: chromadb/chroma:latest
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     environment:
       IS_PERSISTENT: "TRUE"
     healthcheck:
@@ -221,6 +229,7 @@ services:
   mailhog:
     image: crapi/mailhog:latest
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     user: root
     environment:
       MH_MONGO_URI: admin:crapisecretpassword@mongodb:27017
@@ -240,6 +249,7 @@ services:
   api.mypremiumdealership.com:
     image: crapi/gateway-service:latest
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     healthcheck:
       test: bash -c 'echo -n "GET / HTTP/1.1\n\n" > /dev/tcp/127.0.0.1/443'
       interval: 15s

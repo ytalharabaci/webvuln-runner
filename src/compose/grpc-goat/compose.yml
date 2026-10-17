@@ -19,6 +19,7 @@ services:
     build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-001-reflection-enabled
     image: webvuln-runner/grpc-goat-001:4aefc57
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB1:-50051}:8001"
 
@@ -26,6 +27,7 @@ services:
     build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-002-plaintext-grpc
     image: webvuln-runner/grpc-goat-002:4aefc57
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB2:-50052}:8002"
 
@@ -33,6 +35,7 @@ services:
     build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-003-insecure-tls
     image: webvuln-runner/grpc-goat-003:4aefc57
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB3:-50053}:8003"
 
@@ -40,6 +43,7 @@ services:
     build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-004-arbitary-mtls
     image: webvuln-runner/grpc-goat-004:4aefc57
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB4:-50054}:8004"
 
@@ -47,6 +51,7 @@ services:
     build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-005-arbitary-mtls-withsubject
     image: webvuln-runner/grpc-goat-005:4aefc57
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB5:-50055}:8005"
 
@@ -54,6 +59,7 @@ services:
     build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-006-pipe-world-read-write
     image: webvuln-runner/grpc-goat-006:4aefc57
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     volumes:
       - grpc-006-socket:/tmp
 
@@ -61,6 +67,7 @@ services:
     build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-007-sql-injection
     image: webvuln-runner/grpc-goat-007:4aefc57
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB7:-50056}:8007"
 
@@ -68,6 +75,7 @@ services:
     build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-008-grpc-command-injection
     image: webvuln-runner/grpc-goat-008:4aefc57
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB8:-50057}:8008"
 
@@ -75,6 +83,7 @@ services:
     build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-009-ssrf
     image: webvuln-runner/grpc-goat-009:4aefc57
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB9:-50058}:8009"
 

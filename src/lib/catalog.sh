@@ -91,6 +91,10 @@ wvr_catalog_validate() {
             ( if .health != null and ((.health.type // "http") | IN("http", "https", "tcp") | not)
               then lab_err("health.type must be http, https or tcp") else empty end ),
             ( if .env != null and (.env | type) != "object" then lab_err("env must be an object") else empty end ),
+            ( if .hardening != null and (.hardening | type) != "boolean" then lab_err("hardening must be true or false") else empty end ),
+            ( if .mem_limit_mb != null and ((.mem_limit_mb | type) != "number" or .mem_limit_mb < 64)
+              then lab_err("mem_limit_mb must be a number >= 64") else empty end ),
+            ( if .cpus != null and ((.cpus | type) != "number" or .cpus <= 0) then lab_err("cpus must be a positive number") else empty end ),
             ( if .command != null and ((.command | type) != "array" or (.command | all(type == "string") | not))
               then lab_err("command must be an array of strings") else empty end )
         )

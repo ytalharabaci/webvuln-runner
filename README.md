@@ -44,6 +44,9 @@ Start deliberately vulnerable web apps, APIs and benchmark targets in Docker —
 The labs are **intentionally vulnerable**. Treat every one of them as hostile code.
 
 - Labs publish on `127.0.0.1`. Use `--bind 0.0.0.0` (or the TUI's bind option) only on an isolated lab network.
+- Every lab runs on its own Docker network, so one lab cannot reach another. The integration test checks this by name and by IP.
+- Lab containers run with `no-new-privileges`, a 1024-process limit, a memory limit (at least 512 MB, or twice the lab's expected RAM) and at most 2 CPUs. A lab that genuinely breaks under these limits can opt out in the catalog (`"hardening": false`).
+- Compose labs must follow the same rules, and `scripts/check-compose-policy.sh` enforces them in CI. Every service must carry the WebVuln-Runner label and `no-new-privileges`. Ports must be published on `${WVR_BIND}`. `container_name`, privileged mode, host networking or PID namespaces, and Docker socket mounts are not allowed. This rule is why BrokenCrystals ships without its upstream `watchtower` service.
 - Docker isolates processes, but it is not a security boundary you should rely on against a compromised container. Do not run labs on machines holding sensitive data, and never on production infrastructure.
 - Running Docker requires root, or membership in the `docker` group — which is equivalent to root on that host. WebVuln-Runner itself does not need root; it needs access to the Docker daemon.
 - Some labs attack the *client* rather than wait to be attacked. DVMCP's challenges (tool poisoning, token theft and others) target the AI/MCP client that connects to it. Use a throwaway client with no access to real files, API keys or a shell.
@@ -74,8 +77,11 @@ webvuln-runner up <lab> [options]    create and start a lab
     --bind ADDR     address to publish on (default: 127.0.0.1)
     --no-wait       do not wait for the app to answer
 webvuln-runner start|stop|status <name>
+webvuln-runner stop --all            stop every lab
+webvuln-runner stats [name]          CPU and memory of running labs
 webvuln-runner logs <name> [--tail N]
 webvuln-runner rm <name> [--volumes]
+webvuln-runner rm --all --yes [--volumes]   remove every lab (never other containers)
 webvuln-runner validate [catalog.json]
 webvuln-runner uninstall
 ```
@@ -96,6 +102,13 @@ wvr-dvga                 dvga               running      http://127.0.0.1:5013/
 ```
 
 Exit codes: `0` ok, `1` error, `2` usage error, `3` lab started but did not answer in time.
+
+`list` and the menu show each lab's state:
+- `running` or `stopped`.
+- `starting` or `unhealthy`, from the image's own health check.
+- `restarting`.
+- `partial n/m`, when only some containers of a multi-container lab run.
+- `failed`, when a container exited with an error code. `status` then shows the exit code and the last log lines.
 `WVR_BIND` changes the default bind address, and `WVR_HEALTH_TIMEOUT` changes the default readiness timeout in seconds.
 
 ## Supported labs
@@ -184,11 +197,14 @@ Add an entry to [`src/catalog.json`](src/catalog.json):
 | `health` | optional `{ "type": "http" \| "https" \| "tcp", "path": "/ready" }` override |
 | `health_timeout` | seconds to wait for readiness (default 90) |
 | `env`, `workdir`, `command` | optional container environment, working directory and command |
+| `mem_limit_mb`, `cpus` | optional resource limits (defaults: `max(512, 2 × ram_mb)` MB, 2 CPUs) |
+| `hardening` | `false` disables no-new-privileges and the limits; only for labs that break, with the reason in `notes` |
 
 **Compose labs** set `"type": "compose"` and `"compose": "compose/<id>/compose.yml"`. In that file:
 - every service carries the `x-wvr-labels` block (see [`src/compose/nodegoat/compose.yml`](src/compose/nodegoat/compose.yml));
 - every published port is written as `"${WVR_BIND:-127.0.0.1}:${WVR_PORT_<NAME>:-<default>}:<container port>"`, where `<NAME>` is the upper-cased port name from the catalog;
-- `container_name` is not used, so several instances can coexist.
+- `container_name` is not used, so several instances can coexist;
+- every service sets `security_opt: ["no-new-privileges:true"]` (`scripts/check-compose-policy.sh` checks all of this).
 
 Then run `src/webvuln-runner validate`, `scripts/gen-readme-table.sh` and start the lab once with `src/webvuln-runner up <id>`.
 
@@ -197,6 +213,9 @@ Then run `src/webvuln-runner validate`, `scripts/gen-readme-table.sh` and start 
 src/webvuln-runner validate          # catalog schema checks
 bats tests/unit                      # unit tests with a fake docker CLI
 bash tests/integration.sh            # end-to-end against a real Docker daemon
+scripts/check-compose-policy.sh      # security rules for every Compose lab
+scripts/ci-local.sh                  # all of the CI checks above in one go
+scripts/labs-smoke.sh [lab ...]      # start every (or the given) lab for real: up, ready, stop, rm
 shellcheck -x src/webvuln-runner src/lib/*.sh installers/*.sh installers/*/*.sh scripts/*.sh
 ```
 CI runs all of these on every pull request. The integration test checks that labs bind to `127.0.0.1` and that busy ports are skipped. It also checks that a container not created by WebVuln-Runner survives every command.

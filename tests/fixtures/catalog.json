@@ -18,6 +18,19 @@
       "source": "https://hub.docker.com/_/nginx"
     },
     {
+      "id": "test-crash",
+      "name": "Test crashing lab",
+      "description": "Exits with code 3 shortly after start",
+      "category": "web",
+      "stack": ["sh"],
+      "type": "image",
+      "image": "nginx:1.27-alpine",
+      "command": ["sh", "-c", "sleep 1; echo boom; exit 3"],
+      "ports": [{ "name": "web", "container": 80, "host": 18095, "scheme": "http", "path": "/" }],
+      "ram_mb": 16,
+      "source": "https://hub.docker.com/_/nginx"
+    },
+    {
       "id": "test-compose",
       "name": "Test compose lab",
       "description": "Two-service Compose project for tests",
