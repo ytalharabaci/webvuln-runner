@@ -768,6 +768,119 @@
       "ram_mb": 512,
       "notes": "The challenges attack the MCP client that connects. Use a throwaway client with no access to real files, API keys or a shell. Connect it to http://127.0.0.1:9001/sse ... :9010/sse, one server per challenge.",
       "source": "https://github.com/harishsg993010/damn-vulnerable-MCP-server"
+    },
+    {
+      "id": "wrongsecrets",
+      "name": "OWASP WrongSecrets",
+      "description": "Find secrets hidden in code, config and containers",
+      "category": "training",
+      "stack": [
+        "Java",
+        "Spring"
+      ],
+      "type": "image",
+      "image": "jeroenwillemsen/wrongsecrets:1.14.1-no-vault",
+      "ports": [
+        {
+          "name": "web",
+          "container": 8080,
+          "host": 8090,
+          "scheme": "http",
+          "path": "/"
+        }
+      ],
+      "health_timeout": 180,
+      "ram_mb": 1024,
+      "notes": "This is the single-container edition; challenges needing Vault, Kubernetes or a cloud account are disabled.",
+      "source": "https://github.com/OWASP/wrongsecrets"
+    },
+    {
+      "id": "brokencrystals",
+      "name": "BrokenCrystals",
+      "description": "Modern React/Node shop: REST, GraphQL, JWT, SSRF",
+      "category": "web",
+      "stack": [
+        "Node.js",
+        "React",
+        "PostgreSQL",
+        "Keycloak"
+      ],
+      "type": "compose",
+      "compose": "compose/brokencrystals/compose.yml",
+      "ports": [
+        {
+          "name": "web",
+          "host": 3100,
+          "scheme": "http",
+          "path": "/"
+        },
+        {
+          "name": "mail",
+          "host": 1080,
+          "scheme": "http",
+          "path": "/"
+        }
+      ],
+      "health": {
+        "type": "http",
+        "path": "/api/config"
+      },
+      "health_timeout": 300,
+      "ram_mb": 2048,
+      "notes": "API docs at /swagger and GraphiQL at /graphiql on the web port. Sent mails appear in MailCatcher (the mail port).",
+      "source": "https://github.com/NeuraLegion/brokencrystals"
+    },
+    {
+      "id": "djangoat",
+      "name": "DjanGoat",
+      "description": "Django employee portal with OWASP Top 10 flaws",
+      "category": "web",
+      "stack": [
+        "Python",
+        "Django",
+        "SQLite"
+      ],
+      "type": "compose",
+      "compose": "compose/djangoat/compose.yml",
+      "ports": [
+        {
+          "name": "web",
+          "host": 8110,
+          "scheme": "http",
+          "path": "/"
+        }
+      ],
+      "health_timeout": 300,
+      "ram_mb": 256,
+      "notes": "Built from source on first start (Python 2.7), which takes a few minutes.",
+      "source": "https://github.com/Contrast-Security-OSS/DjanGoat"
+    },
+    {
+      "id": "security-shepherd",
+      "name": "OWASP Security Shepherd",
+      "description": "Guided web and mobile security challenges",
+      "category": "training",
+      "stack": [
+        "Java",
+        "Tomcat",
+        "MariaDB",
+        "MongoDB"
+      ],
+      "type": "compose",
+      "compose": "compose/security-shepherd/compose.yml",
+      "ports": [
+        {
+          "name": "web",
+          "host": 8445,
+          "scheme": "https",
+          "path": "/"
+        }
+      ],
+      "health_timeout": 600,
+      "ram_mb": 1536,
+      "credentials": "admin / password (you are asked to change it on first login)",
+      "notes": "Built from source on first start (Maven), which can take 10+ minutes. Uses a self-signed certificate.",
+      "source": "https://github.com/OWASP/SecurityShepherd"
     }
   ]
 }

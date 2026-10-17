@@ -126,8 +126,12 @@ Exit codes: `0` ok, `1` error, `2` usage error, `3` lab started but did not answ
 | [Snyk Goof](https://github.com/snyk-labs/nodejs-goof) | `goof` | web | Node.js, Express, MongoDB | compose | 3001 |
 | [gRPC Goat](https://github.com/rootxjs/grpc-goat) | `grpc-goat` | grpc | Go, gRPC | compose | 50051, 50052-50058 |
 | [DVMCP](https://github.com/harishsg993010/damn-vulnerable-MCP-server) | `dvmcp` | ai-mcp | Python, MCP | compose | 9001, 9002-9010 |
+| [OWASP WrongSecrets](https://github.com/OWASP/wrongsecrets) | `wrongsecrets` | training | Java, Spring | image | 8090 |
+| [BrokenCrystals](https://github.com/NeuraLegion/brokencrystals) | `brokencrystals` | web | Node.js, React, PostgreSQL, Keycloak | compose | 3100, 1080 |
+| [DjanGoat](https://github.com/Contrast-Security-OSS/DjanGoat) | `djangoat` | web | Python, Django, SQLite | compose | 8110 |
+| [OWASP Security Shepherd](https://github.com/OWASP/SecurityShepherd) | `security-shepherd` | training | Java, Tomcat, MariaDB, MongoDB | compose | 8445 |
 
-24 labs. Generated from `src/catalog.json` by `scripts/gen-readme-table.sh`.
+28 labs. Generated from `src/catalog.json` by `scripts/gen-readme-table.sh`.
 <!-- catalog:end -->
 
 Default credentials and first-run steps are shown after a lab starts. They are also listed in the catalog under `credentials` and `notes`.
@@ -201,7 +205,6 @@ CI runs all of these on every pull request. The integration test checks that lab
 [`index.html`](index.html) ([GitHub Pages](https://yusufarbc.github.io/webvuln-runner/)) renders the catalog with search and category filters. It also shows the command that starts each lab. It is static and read-only on purpose: a browser page cannot safely control your Docker daemon, and exposing the Docker socket to one would hand over root on your machine.
 
 ## Roadmap
-- More labs: OWASP Security Shepherd (its database images must be built from source), DjanGoat
 - Optional resource limits per lab
 - `webvuln-runner update` to pull newer catalog images
 - Optional local API for the web catalog, with authentication

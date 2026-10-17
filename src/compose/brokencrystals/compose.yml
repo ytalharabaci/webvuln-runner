@@ -1,0 +1,118 @@
+# BrokenCrystals - adapted from https://github.com/NeuraLegion/brokencrystals/blob/stable/compose.yml
+# (MIT License). pg.sql and keycloak/realm-export.json are copied from the same commit.
+# Changes for WebVuln-Runner:
+#   - the watchtower service is removed: it mounts the Docker socket (root on the host)
+#     and auto-updates containers
+#   - "restart: always" removed, so labs do not come back on their own after a reboot
+#   - only the web app/API and the MailCatcher UI are published, on ${WVR_BIND};
+#     the databases, Keycloak, the gRPC-web proxy and Ollama stay on the internal network
+#   - data directories are named volumes instead of ./.data bind mounts
+#   - WebVuln-Runner labels on every service, app image pinned
+
+x-wvr-labels: &wvr-labels
+  io.webvuln-runner.managed: "true"
+  io.webvuln-runner.lab: ${WVR_LAB:-brokencrystals}
+  io.webvuln-runner.instance: ${WVR_INSTANCE:-}
+  io.webvuln-runner.url: ${WVR_URL:-}
+  io.webvuln-runner.health: ${WVR_HEALTH:-}
+
+services:
+  db:
+    image: postgres:17-alpine
+    labels: *wvr-labels
+    environment:
+      POSTGRES_DB: bc
+      POSTGRES_USER: bc
+      POSTGRES_PASSWORD: bc
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d bc -U bc"]
+      interval: 10s
+      timeout: 45s
+      retries: 10
+    volumes:
+      - ./pg.sql:/docker-entrypoint-initdb.d/pg.sql:ro
+      - db-data:/var/lib/postgresql/data/
+
+  nodejs:
+    image: brightsec/brokencrystals:stable-2a64b9
+    labels: *wvr-labels
+    environment:
+      # As upstream's compose.local.yml: NODE_ENV=production would require Let's Encrypt certificates.
+      URL: http://localhost:3000
+      GRPC_WEB_PROXY_URL: http://grpcwebproxy:8081
+      CHAT_API_URL: http://ollama:11434/v1/chat/completions
+      CHAT_API_MODEL: smollm:135m
+      CHAT_API_TOKEN: ""
+      CHAT_API_MAX_TOKENS: "200"
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-3100}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/api/config"]
+      interval: 5s
+      timeout: 30s
+      retries: 10
+    depends_on:
+      db: { condition: service_healthy }
+      mailcatcher: { condition: service_started }
+      keycloak: { condition: service_started }
+      ollama: { condition: service_started }
+
+  grpcwebproxy:
+    image: webis/grpcwebproxy:0.14.0
+    labels: *wvr-labels
+    command:
+      - grpcwebproxy
+      - --backend_addr=nodejs:5000
+      - --run_tls_server=false
+      - --run_http_server=true
+      - --server_http_debug_port=8081
+      - --allow_all_origins
+    depends_on: [nodejs]
+
+  keycloak-db:
+    image: postgres:17-alpine
+    labels: *wvr-labels
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d keycloak -U keycloak"]
+      interval: 10s
+      timeout: 45s
+      retries: 10
+    volumes:
+      - keycloak-data:/var/lib/postgresql/data/
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.2
+    labels: *wvr-labels
+    command: start-dev --import-realm
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: Pa55w0rd
+      KC_HEALTH_ENABLED: "true"
+    depends_on:
+      keycloak-db: { condition: service_healthy }
+
+  mailcatcher:
+    image: sj26/mailcatcher:v0.10.0
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_MAIL:-1080}:1080"
+
+  ollama:
+    image: brightsec/brokencrystals-ollama:smollm135m
+    labels: *wvr-labels
+
+volumes:
+  db-data:
+  keycloak-data:
