@@ -135,10 +135,14 @@ wvr_tui_instance() {
         if out="$(wvr_start "$name" 2>&1)"; then wvr_tui_wait "$name"; else wvr_msg "Could not start '$name':\n\n$out" "Error"; fi ;;
       stop)
         if out="$(wvr_stop "$name" 2>&1)"; then wvr_msg "'$name' stopped."; else wvr_msg "Could not stop '$name':\n\n$out" "Error"; fi ;;
-      status|logs)
+      status)
+        wvr_wt --title "$name - status" --msgbox "$(wvr_status "$name" 2>&1)" 22 100 ;;
+      logs)
+        # Scrollable: Tab moves to the Ok button.
         tmp="$(mktemp)"
-        if [[ "$action" == "status" ]]; then wvr_status "$name" >"$tmp" 2>&1; else wvr_logs "$name" 200 >"$tmp" 2>&1; fi
-        wvr_textbox "$tmp" "$name - $action"
+        wvr_logs "$name" 200 >"$tmp" 2>&1
+        [[ -s "$tmp" ]] || echo "(no log output yet)" >"$tmp"
+        wvr_textbox "$tmp" "$name - logs (arrows scroll, Tab then Enter to close)"
         rm -f "$tmp" ;;
       remove)
         wvr_wt --title "Remove $name" --defaultno --yesno "Stop and remove '$name'?" 10 60 || continue
