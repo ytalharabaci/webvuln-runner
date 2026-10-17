@@ -146,9 +146,20 @@
                     <input id="search" type="search" class="form-control" placeholder="Search by name, stack or description"
                         aria-label="Search labs">
                 </div>
+                <div class="col-md-3">
+                    <select id="level" class="form-select" aria-label="Filter by level">
+                        <option value="">All levels</option>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
             </div>
-            <div id="filters" class="d-flex flex-wrap gap-2 justify-content-center mb-4" role="group"
+            <div id="filters" class="d-flex flex-wrap gap-2 justify-content-center mb-3" role="group"
                 aria-label="Filter by category"></div>
+            <p class="text-center small text-muted mb-1">Vulnerability topics (pick one or more):</p>
+            <div id="topics" class="d-flex flex-wrap gap-1 justify-content-center mb-4" role="group"
+                aria-label="Filter by vulnerability topic"></div>
             <div id="labs" class="row g-4"></div>
             <p id="labs-status" class="text-center text-muted mt-4"></p>
         </div>
@@ -176,6 +187,7 @@ sudo bash install.sh</code></pre>
                     <h2>Usage</h2>
                     <pre class="bg-dark text-white p-3 rounded"><code>webvuln-runner                  # interactive menu
 webvuln-runner catalog          # labs you can start
+webvuln-runner catalog --topic ssrf --level beginner
 webvuln-runner up crapi         # create, start, wait until ready
 webvuln-runner list             # your labs, state and URL
 webvuln-runner logs wvr-crapi
@@ -208,8 +220,20 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
             const statusEl = document.getElementById("labs-status");
             const searchEl = document.getElementById("search");
             const filtersEl = document.getElementById("filters");
+            const topicsEl = document.getElementById("topics");
+            const levelEl = document.getElementById("level");
+            const TOPIC_LABELS = {
+                "sqli": "SQL injection", "nosqli": "NoSQL injection", "xss": "XSS", "csrf": "CSRF", "ssrf": "SSRF",
+                "xxe": "XXE", "cmdi": "Command injection", "ssti": "SSTI", "idor": "IDOR / BOLA",
+                "authn": "Authentication", "authz": "Authorization", "jwt": "JWT", "path-traversal": "Path traversal",
+                "file-upload": "File upload", "deserialization": "Deserialization", "business-logic": "Business logic",
+                "secrets": "Secrets", "misconfig": "Misconfiguration", "vulnerable-deps": "Vulnerable dependencies",
+                "api-top10": "OWASP API Top 10", "graphql": "GraphQL", "grpc": "gRPC", "llm-mcp": "LLM / MCP", "crypto": "Crypto"
+            };
+            const LEVEL_CLASS = { beginner: "bg-success", intermediate: "bg-warning text-dark", advanced: "bg-danger" };
             let labs = [];
             let category = "all";
+            const topics = new Set();
 
             const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
                 ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -233,9 +257,12 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
                             </div>
                             <h6 class="card-subtitle mb-2 text-muted small">${esc(lab.image || lab.compose)}</h6>
                             <p class="card-text">${esc(lab.description)}</p>
-                            <div class="mb-2">${compose}${stack}</div>
+                            <div class="mb-2"><span class="badge ${LEVEL_CLASS[lab.level] || "bg-secondary"} me-1">${esc(lab.level)}</span>${compose}${stack}</div>
+                            <div class="mb-2">${(lab.topics || []).map((t) =>
+                                `<button type="button" class="btn btn-link btn-sm p-0 me-2 small" data-topic="${esc(t)}">#${esc(t)}</button>`).join("")}</div>
                             <p class="small text-muted mb-2"><i class="fas fa-plug"></i> port ${esc(ports(lab))}
-                                ${lab.ram_mb ? `&middot; <i class="fas fa-memory"></i> ~${esc(lab.ram_mb)} MB` : ""}</p>
+                                ${lab.ram_mb ? `&middot; <i class="fas fa-memory"></i> ~${esc(lab.ram_mb)} MB` : ""}
+                                &middot; ${esc(lab.license)} &middot; verified ${esc(lab.verified)}</p>
                             <code class="cmd mt-auto">webvuln-runner up ${esc(lab.id)}</code>
                         </div>
                     </div>
@@ -246,7 +273,9 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
                 const q = searchEl.value.trim().toLowerCase();
                 const shown = labs.filter((lab) =>
                     (category === "all" || lab.category === category) &&
-                    (!q || [lab.id, lab.name, lab.description, ...(lab.stack || [])].join(" ").toLowerCase().includes(q)));
+                    (!levelEl.value || lab.level === levelEl.value) &&
+                    [...topics].every((t) => (lab.topics || []).includes(t)) &&
+                    (!q || [lab.id, lab.name, lab.description, ...(lab.stack || []), ...(lab.topics || [])].join(" ").toLowerCase().includes(q)));
                 labsEl.innerHTML = shown.map(card).join("");
                 statusEl.textContent = shown.length ? `${shown.length} of ${labs.length} labs` : "No lab matches.";
             }
@@ -261,6 +290,23 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
                 }).join("");
             }
 
+            function renderTopics() {
+                const counts = {};
+                labs.forEach((l) => (l.topics || []).forEach((t) => { counts[t] = (counts[t] || 0) + 1; }));
+                topicsEl.innerHTML = Object.keys(TOPIC_LABELS).filter((t) => counts[t]).map((t) =>
+                    `<button type="button" class="btn btn-sm btn-outline-secondary filter-btn${topics.has(t) ? " active" : ""}"
+                        data-topic="${esc(t)}" aria-pressed="${topics.has(t)}">${esc(TOPIC_LABELS[t])} (${counts[t]})</button>`).join("");
+            }
+
+            function toggleTopic(e) {
+                const btn = e.target.closest("button[data-topic]");
+                if (!btn) return;
+                const t = btn.dataset.topic;
+                if (topics.has(t)) topics.delete(t); else topics.add(t);
+                renderTopics();
+                render();
+            }
+
             filtersEl.addEventListener("click", (e) => {
                 const btn = e.target.closest("button[data-cat]");
                 if (!btn) return;
@@ -268,7 +314,10 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
                 renderFilters();
                 render();
             });
+            topicsEl.addEventListener("click", toggleTopic);
+            labsEl.addEventListener("click", toggleTopic);
             searchEl.addEventListener("input", render);
+            levelEl.addEventListener("change", render);
 
             fetch("src/catalog.json")
                 .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
@@ -276,6 +325,7 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
                     labs = data.labs;
                     document.getElementById("lab-count").textContent = labs.length;
                     renderFilters();
+                    renderTopics();
                     render();
                 })
                 .catch(() => {

@@ -6,41 +6,97 @@
       "name": "Test image lab",
       "description": "Single nginx container for integration tests",
       "category": "web",
-      "stack": ["nginx"],
+      "stack": [
+        "nginx"
+      ],
       "type": "image",
       "image": "nginx:1.27-alpine",
-      "env": { "WVR_TEST": "1" },
+      "env": {
+        "WVR_TEST": "1"
+      },
       "ports": [
-        { "name": "web", "container": 80, "host": 18080, "scheme": "http", "path": "/" },
-        { "name": "alt", "container": 8080, "host": 18081, "scheme": "tcp" }
+        {
+          "name": "web",
+          "container": 80,
+          "host": 18080,
+          "scheme": "http",
+          "path": "/"
+        },
+        {
+          "name": "alt",
+          "container": 8080,
+          "host": 18081,
+          "scheme": "tcp"
+        }
       ],
       "ram_mb": 16,
-      "source": "https://hub.docker.com/_/nginx"
+      "source": "https://hub.docker.com/_/nginx",
+      "level": "beginner",
+      "topics": [
+        "misconfig"
+      ],
+      "license": "BSD-2-Clause",
+      "verified": "2026-10-17"
     },
     {
       "id": "test-crash",
       "name": "Test crashing lab",
       "description": "Exits with code 3 shortly after start",
       "category": "web",
-      "stack": ["sh"],
+      "stack": [
+        "sh"
+      ],
       "type": "image",
       "image": "nginx:1.27-alpine",
-      "command": ["sh", "-c", "sleep 1; echo boom; exit 3"],
-      "ports": [{ "name": "web", "container": 80, "host": 18095, "scheme": "http", "path": "/" }],
+      "command": [
+        "sh",
+        "-c",
+        "sleep 1; echo boom; exit 3"
+      ],
+      "ports": [
+        {
+          "name": "web",
+          "container": 80,
+          "host": 18095,
+          "scheme": "http",
+          "path": "/"
+        }
+      ],
       "ram_mb": 16,
-      "source": "https://hub.docker.com/_/nginx"
+      "source": "https://hub.docker.com/_/nginx",
+      "level": "beginner",
+      "topics": [
+        "misconfig"
+      ],
+      "license": "BSD-2-Clause",
+      "verified": "2026-10-17"
     },
     {
       "id": "test-compose",
       "name": "Test compose lab",
       "description": "Two-service Compose project for tests",
       "category": "web",
-      "stack": ["nginx"],
+      "stack": [
+        "nginx"
+      ],
       "type": "compose",
       "compose": "compose/test-compose/compose.yml",
-      "ports": [{ "name": "web", "host": 18090, "scheme": "http", "path": "/" }],
+      "ports": [
+        {
+          "name": "web",
+          "host": 18090,
+          "scheme": "http",
+          "path": "/"
+        }
+      ],
       "ram_mb": 32,
-      "source": "https://hub.docker.com/_/nginx"
+      "source": "https://hub.docker.com/_/nginx",
+      "level": "beginner",
+      "topics": [
+        "misconfig"
+      ],
+      "license": "BSD-2-Clause",
+      "verified": "2026-10-17"
     }
   ]
 }

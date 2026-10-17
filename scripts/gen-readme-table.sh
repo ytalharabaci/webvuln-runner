@@ -11,15 +11,24 @@ START='<!-- catalog:start -->'
 END='<!-- catalog:end -->'
 
 table="$(jq -r '
-  "| Lab | ID | Category | Stack | Type | Default port(s) |",
-  "|---|---|---|---|---|---|",
+  "| Lab | ID | Category | Level | Topics | Type | Default port(s) | License | Verified |",
+  "|---|---|---|---|---|---|---|---|---|",
   (.labs[] |
-    "| [\(.name)](\(.source)) | `\(.id)` | \(.category) | \(.stack // [] | join(", ")) | \(.type) | " +
+    "| [\(.name)](\(.source)) | `\(.id)` | \(.category) | \(.level) | \(.topics | join(", ")) | \(.type) | " +
     ( if (.ports | length) > 3
       then "\(.ports[0].host), \(.ports[1].host)-\(.ports[-1].host)"
-      else (.ports | map(.host | tostring) | join(", ")) end ) + " |"),
+      else (.ports | map(.host | tostring) | join(", ")) end ) +
+    " | \(.license) | \(.verified) |"),
   "",
-  "\(.labs | length) labs. Generated from `src/catalog.json` by `scripts/gen-readme-table.sh`."
+  "### Labs by topic",
+  "",
+  "| Topic | Labs |",
+  "|---|---|",
+  ( .labs as $labs
+    | [$labs[].topics[]] | unique | .[] as $t
+    | "| `\($t)` | \([$labs[] | select(.topics | index($t)) | .id] | map("`\(.)`") | join(", ")) |" ),
+  "",
+  "\(.labs | length) labs. Generated from `src/catalog.json` by `scripts/gen-readme-table.sh`. \"Verified\" is the last date `scripts/labs-smoke.sh` started the lab successfully."
 ' "$CATALOG")"
 
 if ! grep -qF "$START" "$README" || ! grep -qF "$END" "$README"; then

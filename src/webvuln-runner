@@ -20,7 +20,9 @@ WebVuln-Runner $WVR_VERSION - deliberately vulnerable labs in Docker
 
 Usage:
   webvuln-runner                       interactive menu
-  webvuln-runner catalog               list labs that can be started
+  webvuln-runner catalog [--topic T] [--category C] [--level L]
+                                       list labs that can be started
+  webvuln-runner topics                vulnerability topics and how many labs cover each
   webvuln-runner list                  list your labs and their state
   webvuln-runner up <lab> [options]    create and start a lab
       --name NAME     instance name (default: wvr-<lab>)
@@ -51,11 +53,38 @@ wvr_usage_error() {
 }
 
 wvr_cmd_catalog() {
-  local id name cat type
-  printf '%-18s %-10s %-8s %s\n' "LAB" "CATEGORY" "TYPE" "NAME"
-  while IFS=$'\t' read -r id name cat type _; do
-    printf '%-18s %-10s %-8s %s\n' "$id" "$cat" "$type" "$name"
-  done < <(wvr_catalog_list)
+  local topic="" cat="" level="" id type lvl topics rows
+  while (( $# )); do
+    case "$1" in
+      --topic)    [[ $# -ge 2 ]] || { wvr_usage_error "--topic needs a value"; return; }; topic="$2"; shift 2 ;;
+      --category) [[ $# -ge 2 ]] || { wvr_usage_error "--category needs a value"; return; }; cat="$2"; shift 2 ;;
+      --level)    [[ $# -ge 2 ]] || { wvr_usage_error "--level needs a value"; return; }; level="$2"; shift 2 ;;
+      *)          wvr_usage_error "unknown option: $1"; return ;;
+    esac
+  done
+  if [[ -n "$topic" ]] && ! jq -e --arg t "$topic" 'index($t) != null' <<<"$WVR_TOPICS" >/dev/null; then
+    wvr_usage_error "unknown topic '$topic' (see 'webvuln-runner topics')"
+    return
+  fi
+  rows="$(wvr_catalog_list_filtered "$topic" "$cat" "$level")"
+  if [[ -z "$rows" ]]; then
+    wvr_info "No lab matches."
+    return 0
+  fi
+  printf '%-18s %-10s %-13s %-8s %s\n' "LAB" "CATEGORY" "LEVEL" "TYPE" "TOPICS"
+  while IFS=$'\t' read -r id _ cat type _ lvl topics; do
+    printf '%-18s %-10s %-13s %-8s %s\n' "$id" "$cat" "$lvl" "$type" "${topics//,/, }"
+  done <<<"$rows"
+}
+
+wvr_cmd_topics() {
+  local topic n
+  printf '%-16s %s\n' "TOPIC" "LABS"
+  while IFS=$'\t' read -r topic n; do
+    printf '%-16s %s\n' "$topic" "$n"
+  done < <(wvr_catalog_topics)
+  wvr_info ""
+  wvr_info "Show the labs for one topic with: webvuln-runner catalog --topic <topic>"
 }
 
 wvr_cmd_list() {
@@ -160,7 +189,10 @@ main() {
       wvr_info "catalog OK: $(jq '.labs | length' "$file") labs"
       return 0 ;;
     catalog)
-      wvr_cmd_catalog
+      wvr_cmd_catalog "$@"
+      return ;;
+    topics)
+      wvr_cmd_topics
       return ;;
   esac
 
