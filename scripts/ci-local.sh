@@ -9,12 +9,13 @@ failed=()
 step() { local name="$1"; shift; echo "== $name"; "$@" || failed+=("$name"); }
 
 syntax() { local f; for f in "${scripts[@]}"; do bash -n "$f" || return 1; done; }
-compose_config() { local f; for f in src/compose/*/compose.yml; do docker compose -f "$f" config --quiet || return 1; done; }
+policy_rejects_violations() { ! ./scripts/check-compose-policy.sh tests/fixtures/policy-violations.yml >/dev/null; }
 
 step "bash -n"       syntax
 step "shellcheck"    shellcheck -x "${scripts[@]}"
 step "catalog"       ./src/webvuln-runner validate
-step "compose files" compose_config
+step "compose policy" ./scripts/check-compose-policy.sh
+step "policy rejects violations" policy_rejects_violations
 step "readme table"  ./scripts/gen-readme-table.sh --check
 step "unit tests"    bats tests/unit
 step "integration"   bash tests/integration.sh

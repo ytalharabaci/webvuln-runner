@@ -28,13 +28,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate catalog
         run: ./src/webvuln-runner validate
-      - name: Compose files parse
-        run: |
-          for f in src/compose/*/compose.yml; do
-            [ -e "$f" ] || continue
-            echo "== $f"
-            docker compose -f "$f" config --quiet
-          done
+      - name: Compose policy (labels, no-new-privileges, no socket/host access, ports on WVR_BIND)
+        run: ./scripts/check-compose-policy.sh
+      - name: Compose policy rejects a violating file
+        run: "! ./scripts/check-compose-policy.sh tests/fixtures/policy-violations.yml"
       - name: README lab table is up to date
         run: ./scripts/gen-readme-table.sh --check
 

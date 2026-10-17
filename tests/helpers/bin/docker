@@ -16,7 +16,17 @@ arg_value() { # prints the value of a "label=<key>=" filter, if any
 }
 
 case "$1" in
-  info)    exit "${STUB_INFO_RC:-0}" ;;
+  info)
+    [[ " $* " == *NCPU* ]] && echo "${STUB_NCPU:-8}"
+    exit "${STUB_INFO_RC:-0}" ;;
+  network)
+    case "$2" in
+      inspect) exit "${STUB_NET_INSPECT_RC:-1}" ;;   # 1: no such network
+      create)  echo "n0000001"; exit "${STUB_NET_CREATE_RC:-0}" ;;
+      ls)      [[ -n "${STUB_NET_IDS:-}" ]] && echo "$STUB_NET_IDS"; exit 0 ;;
+      *)       exit 0 ;;
+    esac ;;
+  stats)   printf 'NAME\tCPU %%\tMEM USAGE / LIMIT\tPIDS\nstub\t0.1%%\t10MiB / 512MiB\t3\n'; exit 0 ;;
   pull)    exit "${STUB_PULL_RC:-0}" ;;
   image)   exit "${STUB_IMAGE_RC:-0}" ;;
   create)  [[ "${STUB_CREATE_RC:-0}" == 0 ]] && echo "c0ffee000001"; exit "${STUB_CREATE_RC:-0}" ;;

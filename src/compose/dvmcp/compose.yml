@@ -14,6 +14,7 @@ services:
     build: https://github.com/harishsg993010/damn-vulnerable-MCP-server.git#79734c19f5104cd11486c90926d245560f53befa
     image: webvuln-runner/dvmcp:79734c1
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_C1:-9001}:9001"
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_C2:-9002}:9002"

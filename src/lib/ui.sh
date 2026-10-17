@@ -45,12 +45,18 @@ wvr_tui_main() {
       items+=("$name" "$(wvr_fit "$(printf '%-9s %-15s %s' "$state" "$lab" "$url")" $(( width - tagw - 10 )))")
     done <<<"$rows"
     items+=(">add" "Add a new lab from the catalog")
+    if [[ -n "$rows" ]]; then
+      items+=(">stopall" "Stop all labs")
+      items+=(">cleanup" "Remove all labs...")
+    fi
     items+=(">bind" "$(wvr_fit "Where new labs listen (now $WVR_TUI_BIND)" $(( width - tagw - 10 )))")
     choice="$(wvr_wt --title "Your labs" --ok-button "Select" --cancel-button "Quit" \
       --menu "Select a lab to manage it, or add a new one." 22 "$width" 14 "${items[@]}")" || return 0
     case "$choice" in
-      ">add")  wvr_tui_add ;;
-      ">bind") wvr_tui_bind ;;
+      ">add")     wvr_tui_add ;;
+      ">bind")    wvr_tui_bind ;;
+      ">stopall") wvr_msg "$(wvr_stop_all 2>&1)" "Stop all labs" ;;
+      ">cleanup") wvr_tui_cleanup ;;
       *)       wvr_tui_instance "$choice" ;;
     esac
   done
@@ -124,6 +130,18 @@ wvr_tui_wait() {
   else
     wvr_msg "'$name' is running but did not answer in time.\n\nSome labs need several minutes on their first start. Use 'Status' or 'Logs' to check on it.\n\nURL: $url" "Still starting"
   fi
+}
+
+wvr_tui_cleanup() {
+  local count vol=""
+  count="$(wvr_instances | wc -l)"
+  wvr_wt --title "Remove all labs" --defaultno --yesno \
+    "Stop and remove all $count lab(s) created by WebVuln-Runner?\n\nOther containers on this host are not touched." 11 70 || return 0
+  wvr_wt --title "Remove all labs" --defaultno --yesno \
+    "Are you sure? This cannot be undone." 9 60 || return 0
+  if wvr_wt --title "Remove all labs" --defaultno --yesno \
+    "Also delete their data volumes?\n\nChoose 'No' to keep them." 11 60; then vol="--volumes"; fi
+  wvr_msg "$(wvr_rm_all "$vol" 2>&1)" "Remove all labs"
 }
 
 wvr_tui_bind() {

@@ -14,6 +14,7 @@ services:
   goof:
     image: snyklabs/goof:latest
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     environment:
       DOCKER: "1"
     ports:
@@ -23,10 +24,12 @@ services:
   goof-mongo:
     image: mongo:3
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
 
   good-mysql:
     image: mysql:5
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: acme

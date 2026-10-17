@@ -22,5 +22,6 @@ services:
         CMD ["sh", "-c", "python manage.py migrate && (python manage.py seed || true) && exec python manage.py runserver 0.0.0.0:8000"]
     image: webvuln-runner/djangoat:082c88b
     labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
     ports:
       - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-8110}:8000"

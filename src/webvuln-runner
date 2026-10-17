@@ -28,8 +28,11 @@ Usage:
       --bind ADDR     address to publish on (default: 127.0.0.1)
       --no-wait       do not wait for the app to answer
   webvuln-runner start|stop|status <name>
+  webvuln-runner stop --all            stop every lab
+  webvuln-runner stats [name]          CPU and memory of running labs
   webvuln-runner logs <name> [--tail N]
   webvuln-runner rm <name> [--volumes]
+  webvuln-runner rm --all --yes [--volumes]   remove every lab
   webvuln-runner validate [catalog.json]
   webvuln-runner uninstall
   webvuln-runner version
@@ -109,14 +112,22 @@ wvr_cmd_logs() {
 }
 
 wvr_cmd_rm() {
-  local name="" vol=""
+  local name="" vol="" all=0 yes=0
   while (( $# )); do
     case "$1" in
       --volumes) vol="--volumes"; shift ;;
+      --all)     all=1; shift ;;
+      --yes)     yes=1; shift ;;
       -*)        wvr_usage_error "unknown option: $1"; return ;;
       *)         name="$1"; shift ;;
     esac
   done
+  if (( all )); then
+    [[ -z "$name" ]] || { wvr_usage_error "use either a lab name or --all"; return; }
+    (( yes )) || { wvr_usage_error "rm --all removes every lab created by WebVuln-Runner; add --yes to confirm"; return; }
+    wvr_rm_all "$vol"
+    return
+  fi
   [[ -n "$name" ]] || { wvr_usage_error "missing lab name"; return; }
   wvr_rm "$name" "$vol" && wvr_info "removed $name"
 }
@@ -166,7 +177,12 @@ main() {
       wvr_tui_main ;;
     list)   wvr_cmd_list ;;
     up)     wvr_cmd_up "$@" ;;
+    stats)  wvr_stats "${1:-}" ;;
     start|stop|status)
+      if [[ "$cmd" == "stop" && "${1:-}" == "--all" && $# -eq 1 ]]; then
+        wvr_stop_all
+        return
+      fi
       [[ $# -eq 1 ]] || { wvr_usage_error "usage: webvuln-runner $cmd <name>"; return; }
       "wvr_$cmd" "$1" || return 1
       case "$cmd" in

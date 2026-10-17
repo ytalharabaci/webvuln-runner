@@ -14,7 +14,7 @@ fail() { printf 'FAIL %s\n' "$1"; failures=$((failures + 1)); }
 check() { local desc="$1"; shift; if "$@"; then pass "$desc"; else fail "$desc"; fi; }
 
 cleanup() {
-  for n in it-a it-b it-c; do "${WVR[@]}" rm "$n" --volumes >/dev/null 2>&1; done
+  for n in it-a it-b it-c it-crash; do "${WVR[@]}" rm "$n" --volumes >/dev/null 2>&1; done
   docker rm -f "$OUTSIDER" >/dev/null 2>&1
 }
 trap cleanup EXIT
@@ -38,6 +38,17 @@ check "lab answers over http" curl -fsS -o /dev/null http://127.0.0.1:18081/
 
 check "second instance of the same lab" "${WVR[@]}" up test-image --name it-b
 check "second instance does not reuse ports" test "$(host_binding it-b 80/tcp)" = "127.0.0.1:18083"
+
+check "each lab is on its own network" \
+  test "$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}' it-a)" = "wvr-it-a"
+ip_b="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' it-b)"
+check "labs cannot reach each other by name" bash -c "! docker exec it-a wget -q -T 3 -O /dev/null http://it-b/"
+check "labs cannot reach each other by IP" bash -c "! docker exec it-a wget -q -T 3 -O /dev/null http://$ip_b/"
+check "no-new-privileges is set" \
+  bash -c "docker inspect -f '{{.HostConfig.SecurityOpt}}' it-a | grep -q no-new-privileges:true"
+check "memory, pids and cpu limits are set" \
+  bash -c "docker inspect -f '{{.HostConfig.Memory}} {{.HostConfig.PidsLimit}} {{.HostConfig.NanoCpus}}' it-a | grep -Eq '^[1-9][0-9]* 1024 [1-9]'"
+check "stats shows running labs" bash -c "'${WVR[0]}' stats | grep -q it-a"
 
 list="$("${WVR[@]}" list)"
 check "list shows managed labs" grep -q '^it-a ' <<<"$list"
@@ -71,9 +82,16 @@ else
   echo "skip compose tests: docker compose not available"
 fi
 
-check "rm image labs" bash -c "'${WVR[0]}' rm it-a && '${WVR[0]}' rm it-b"
+check "up crashing lab" "${WVR[@]}" up test-crash --name it-crash --no-wait
+sleep 4
+check "a crashed lab is reported as failed" bash -c "'${WVR[0]}' list | grep -Eq '^it-crash +test-crash +failed'"
+check "status explains the failure" bash -c "'${WVR[0]}' status it-crash | grep -q 'exit code 3'"
+check "stop --all stops every lab" bash -c "'${WVR[0]}' stop --all && ! docker inspect -f '{{.State.Running}}' it-a | grep -q true"
+check "rm --all needs --yes" bash -c "! '${WVR[0]}' rm --all"
+check "rm --all --yes removes every lab" "${WVR[@]}" rm --all --yes
 check "no managed test containers left" \
   test -z "$(docker ps -aq --filter label=io.webvuln-runner.managed=true --filter label=io.webvuln-runner.lab=test-image)"
+check "lab networks are removed" test -z "$(docker network ls -q --filter label=io.webvuln-runner.managed=true --filter label=io.webvuln-runner.lab=test-image)"
 check "foreign container survived everything" running "$OUTSIDER"
 
 echo

@@ -38,8 +38,8 @@ write_catalog() {
   printf '%s\n' "$dir/catalog.json"
 }
 
-add_managed() { # id instance lab state url [project]
-  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5" "${6:-}" >>"$STUB_DIR/managed"
+add_managed() { # id instance lab state url [project] [docker status text]
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5" "${6:-}" "${7:-}" >>"$STUB_DIR/managed"
 }
 
 docker_calls() { cat "$STUB_LOG"; }
