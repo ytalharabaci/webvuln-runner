@@ -5,7 +5,14 @@ The release workflow publishes the section of the tagged version as the GitHub r
 
 ## [Unreleased]
 
+### Security
+- Release tarballs carry a signed build provenance attestation; verify with `gh attestation verify <tarball> --repo yusufarbc/webvuln-runner`.
+
+### Added
+- Screenshots of the TUI in the README (step-by-step walkthrough) and on the web catalog.
+
 ### Changed
+- README and web catalog present WebVuln-Runner as a TUI; commands are documented as a secondary way to use it. The README states the scope: it runs labs and never scans or modifies them.
 - Vulnerability topics are grouped into 10 broader topics (`injection`, `xss-csrf`, `access-control`, `authentication`, `ssrf`, `files`, `api`, `secrets-config`, `dependencies`, `logic-llm`) instead of 24. The web catalog, the menu, the README and `catalog --topic` use the new topics.
 
 ## [2.2.0] - 2026-10-17

@@ -2,12 +2,16 @@ name: Release
 
 # Push a tag like v2.0.0 to publish webvuln-runner-2.0.0.tar.gz and SHA256SUMS.
 # installers/install.sh downloads exactly these two files and verifies the checksum.
+# The tarball also gets a signed build provenance attestation, which proves it was built by
+# this workflow from this repository: gh attestation verify <tarball> --repo yusufarbc/webvuln-runner
 on:
   push:
     tags: ["v*"]
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -32,6 +36,10 @@ jobs:
           cp installers/install-files.sh installers/uninstall.sh LICENSE README.md CHANGELOG.md "dist/$name/"
           tar -C dist -czf "dist/$name.tar.gz" "$name"
           (cd dist && sha256sum "$name.tar.gz" > SHA256SUMS && cat SHA256SUMS)
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/*.tar.gz
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
