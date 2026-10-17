@@ -56,7 +56,7 @@ The labs are **intentionally vulnerable**. Treat every one of them as hostile co
 ## Quick start
 ```sh
 # Download the installer of a tagged release, read it, then run it
-curl -fsSLO https://raw.githubusercontent.com/yusufarbc/webvuln-runner/v2.1.0/installers/install.sh
+curl -fsSLO https://raw.githubusercontent.com/yusufarbc/webvuln-runner/v2.2.0/installers/install.sh
 less install.sh
 sudo bash install.sh
 
@@ -186,7 +186,7 @@ Default credentials and first-run steps are shown after a lab starts. They are a
 2. downloads the release tarball, verifies it against the release's `SHA256SUMS` and refuses to install on mismatch;
 3. installs to `/usr/local/lib/webvuln-runner`, with `webvuln-runner` (and the 1.x name `WebVuln-Runner`) in `/usr/local/bin`.
 
-Options are environment variables: `WVR_RELEASE=v2.1.0`, `WVR_DISTRO=debian|redhat|arch`, `WVR_SKIP_DEPS=1`.
+Options are environment variables: `WVR_RELEASE=v2.2.0`, `WVR_DISTRO=debian|redhat|arch`, `WVR_SKIP_DEPS=1`.
 
 **From a git checkout:** `sudo installers/install-files.sh` installs the files of the checkout. You can also run `src/webvuln-runner` directly without installing.
 

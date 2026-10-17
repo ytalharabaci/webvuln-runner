@@ -2,7 +2,7 @@
 # Shared constants and helpers for WebVuln-Runner.
 # shellcheck disable=SC2034 # constants are used by the other lib files
 
-WVR_VERSION="2.1.0"
+WVR_VERSION="2.2.0"
 
 # Every container/network/volume created by this tool carries these labels.
 # Anything without them is never listed, started, stopped or removed.
