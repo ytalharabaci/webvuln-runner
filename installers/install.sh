@@ -78,7 +78,10 @@ deps_redhat() {
   elif ! docker compose version >/dev/null 2>&1; then
     dnf -y install docker-compose-plugin || warn "could not install docker-compose-plugin; multi-container labs will be unavailable"
   fi
-  dnf -y install newt jq curl tar
+  # curl only if missing: RHEL-family images ship curl-minimal, which conflicts with curl.
+  local pkgs=(newt jq tar)
+  command -v curl >/dev/null 2>&1 || pkgs+=(curl)
+  dnf -y install "${pkgs[@]}"
 }
 
 deps_arch() {
@@ -125,7 +128,7 @@ fi
 if ! docker info >/dev/null 2>&1; then
   warn "the Docker daemon is not reachable yet; start it before running webvuln-runner"
 fi
-docker compose version >/dev/null 2>&1 || warn "'docker compose' is missing; multi-container labs are disabled"
+docker compose version >/dev/null 2>&1 || warn "'docker compose' (Compose v2) is missing, so multi-container labs are disabled. Install the docker-compose-plugin package from Docker's repository: https://docs.docker.com/engine/install/"
 
 cat <<EOF
 
