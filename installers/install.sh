@@ -13,7 +13,7 @@
 #   WVR_SKIP_DEPS=1 do not install packages
 set -euo pipefail
 
-WVR_RELEASE="${WVR_RELEASE:-v2.0.0}"
+WVR_RELEASE="${WVR_RELEASE:-v2.1.0}"
 REPO="yusufarbc/webvuln-runner"
 
 say() { printf '==> %s\n' "$*"; }
