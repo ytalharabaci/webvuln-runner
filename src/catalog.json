@@ -766,7 +766,7 @@
       },
       "health_timeout": 300,
       "ram_mb": 512,
-      "notes": "Connect an MCP client (e.g. Cline or Cursor) to http://127.0.0.1:9001/sse ... :9010/sse, one server per challenge.",
+      "notes": "The challenges attack the MCP client that connects. Use a throwaway client with no access to real files, API keys or a shell. Connect it to http://127.0.0.1:9001/sse ... :9010/sse, one server per challenge.",
       "source": "https://github.com/harishsg993010/damn-vulnerable-MCP-server"
     }
   ]
