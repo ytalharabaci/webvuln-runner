@@ -1,0 +1,39 @@
+name: Release
+
+# Push a tag like v2.0.0 to publish webvuln-runner-2.0.0.tar.gz and SHA256SUMS.
+# installers/install.sh downloads exactly these two files and verifies the checksum.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check versions match the tag
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          ver="$(./src/webvuln-runner version | awk '{print $2}')"
+          [ "v$ver" = "$tag" ] || { echo "::error::tag $tag but WVR_VERSION is $ver"; exit 1; }
+          grep -q "WVR_RELEASE:-$tag}" installers/install.sh || { echo "::error::installers/install.sh does not default to $tag"; exit 1; }
+      - name: Validate catalog
+        run: ./src/webvuln-runner validate
+      - name: Build tarball
+        run: |
+          name="webvuln-runner-${GITHUB_REF_NAME#v}"
+          mkdir -p "dist/$name"
+          cp -R src/webvuln-runner src/lib src/catalog.json src/compose "dist/$name/"
+          cp installers/install-files.sh installers/uninstall.sh LICENSE README.md "dist/$name/"
+          tar -C dist -czf "dist/$name.tar.gz" "$name"
+          (cd dist && sha256sum "$name.tar.gz" > SHA256SUMS && cat SHA256SUMS)
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          name="webvuln-runner-${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" "dist/$name.tar.gz" dist/SHA256SUMS \
+            --title "WebVuln-Runner $GITHUB_REF_NAME" --generate-notes
