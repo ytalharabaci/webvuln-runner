@@ -160,7 +160,13 @@ Options are environment variables: `WVR_RELEASE=v2.1.0`, `WVR_DISTRO=debian|redh
 
 **From a git checkout:** `sudo installers/install-files.sh` installs the files of the checkout. You can also run `src/webvuln-runner` directly without installing.
 
-**Update:** run the installer of the newer release; your labs are kept.
+**Update:** run the installer of the newer release; your labs are kept. See [CHANGELOG.md](CHANGELOG.md) for what changed.
+
+**Rollback:** if a release misbehaves, install the previous one over it. Labs and their volumes are kept:
+```sh
+curl -fsSLO https://raw.githubusercontent.com/yusufarbc/webvuln-runner/v2.1.0/installers/install.sh
+sudo WVR_RELEASE=v2.1.0 bash install.sh
+```
 
 **Uninstall:** `sudo webvuln-runner uninstall`. It asks before removing the labs it created and never touches other containers. Pass `--remove-labs` or `--keep-labs` to skip the question when calling `/usr/local/lib/webvuln-runner/uninstall.sh` directly.
 

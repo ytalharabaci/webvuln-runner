@@ -22,12 +22,14 @@ jobs:
           grep -q "WVR_RELEASE:-$tag}" installers/install.sh || { echo "::error::installers/install.sh does not default to $tag"; exit 1; }
       - name: Validate catalog
         run: ./src/webvuln-runner validate
+      - name: Release notes from CHANGELOG.md
+        run: ./scripts/changelog-section.sh "$GITHUB_REF_NAME" > release-notes.md && cat release-notes.md
       - name: Build tarball
         run: |
           name="webvuln-runner-${GITHUB_REF_NAME#v}"
           mkdir -p "dist/$name"
           cp -R src/webvuln-runner src/lib src/catalog.json src/compose "dist/$name/"
-          cp installers/install-files.sh installers/uninstall.sh LICENSE README.md "dist/$name/"
+          cp installers/install-files.sh installers/uninstall.sh LICENSE README.md CHANGELOG.md "dist/$name/"
           tar -C dist -czf "dist/$name.tar.gz" "$name"
           (cd dist && sha256sum "$name.tar.gz" > SHA256SUMS && cat SHA256SUMS)
       - name: Publish release
@@ -36,4 +38,4 @@ jobs:
         run: |
           name="webvuln-runner-${GITHUB_REF_NAME#v}"
           gh release create "$GITHUB_REF_NAME" "dist/$name.tar.gz" dist/SHA256SUMS \
-            --title "WebVuln-Runner $GITHUB_REF_NAME" --generate-notes
+            --title "WebVuln-Runner $GITHUB_REF_NAME" --notes-file release-notes.md
