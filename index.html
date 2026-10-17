@@ -185,12 +185,15 @@ sudo bash install.sh</code></pre>
                 </div>
                 <div class="col-lg-6">
                     <h2>Usage</h2>
-                    <pre class="bg-dark text-white p-3 rounded"><code>webvuln-runner                  # interactive menu
-webvuln-runner catalog          # labs you can start
-webvuln-runner catalog --topic ssrf --level beginner
-webvuln-runner up crapi         # create, start, wait until ready
-webvuln-runner list             # your labs, state and URL
-webvuln-runner logs wvr-crapi
+                    <p>Run <code>webvuln-runner</code> and manage everything from the menu: add a lab by topic or level,
+                        start, stop, check status, read logs and remove it.</p>
+                    <img src="assets/screenshots/main-menu.png" alt="WebVuln-Runner main menu listing two running labs"
+                        class="img-fluid rounded shadow mb-3" loading="lazy">
+                    <img src="assets/screenshots/add-lab-list.png" alt="Choosing a lab for the API topic"
+                        class="img-fluid rounded shadow mb-3" loading="lazy">
+                    <p class="small text-muted mb-1">The same actions are also available as commands, e.g.:</p>
+                    <pre class="bg-dark text-white p-3 rounded small"><code>webvuln-runner up crapi
+webvuln-runner list
 webvuln-runner rm wvr-crapi --volumes</code></pre>
                     <p class="text-muted small">This page is a read-only catalog. A web page cannot safely control your
                         Docker daemon, so labs are managed from the terminal.</p>
