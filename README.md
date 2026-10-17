@@ -39,7 +39,7 @@ Start deliberately vulnerable web apps, APIs and benchmark targets in Docker —
 - **Beyond classic web labs:** REST and GraphQL APIs, Node.js, Java, Python and PHP stacks, and the OWASP Benchmark for measuring SAST/DAST tools.
 - **One TUI for every lab:** a terminal menu to add, start, stop, inspect and remove labs. The same actions are also available as commands (see [Command line](#command-line)), which the tests use.
 - **Pick by what you want to learn:** every lab is tagged with one or more of 10 vulnerability topics (injection, XSS & CSRF, access control, authentication, SSRF, files, API, secrets & config, dependencies, logic & LLM) and a level. Use `webvuln-runner catalog --topic ssrf --level beginner`, the menu's "By topic" option, or the filters on the web catalog.
-- **One catalog:** [`src/catalog.json`](src/catalog.json) drives the TUI, the CLI, this README's lab table and the [web catalog](https://yusufarbc.github.io/webvuln-runner/). It records each lab's license and the date it was last verified to start.
+- **One catalog:** [`src/catalog.json`](src/catalog.json) drives the TUI, the commands, this README's lab table and the [web catalog](https://webvulnrunner.dev/). It records each lab's license and the date it was last verified to start.
 
 ## Safety model
 The labs are **intentionally vulnerable**. Treat every one of them as hostile code.
@@ -287,7 +287,7 @@ shellcheck -x src/webvuln-runner src/lib/*.sh installers/*.sh installers/*/*.sh 
 CI runs all of these on every pull request. The integration test checks that labs bind to `127.0.0.1` and that busy ports are skipped. It also checks that a container not created by WebVuln-Runner survives every command.
 
 ## Web catalog
-[`index.html`](index.html) ([GitHub Pages](https://yusufarbc.github.io/webvuln-runner/)) renders the catalog with search and category filters. It also shows the command that starts each lab. It is static and read-only on purpose: a browser page cannot safely control your Docker daemon, and exposing the Docker socket to one would hand over root on your machine.
+[`index.html`](index.html) ([webvulnrunner.dev](https://webvulnrunner.dev/)) renders the catalog with search and category filters. It also shows the command that starts each lab. It is static and read-only on purpose: a browser page cannot safely control your Docker daemon, and exposing the Docker socket to one would hand over root on your machine.
 
 ## Roadmap
 WebVuln-Runner runs labs; it does not scan, test or modify them. The labs' code, images and content belong to their upstream projects. The tool only decides how they run: on loopback, on their own network, with resource limits, and without services that would endanger the host.
