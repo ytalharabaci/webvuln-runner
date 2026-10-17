@@ -1,0 +1,48 @@
+# DVWS-Node - adapted from https://github.com/snoopysecurity/dvws-node/blob/master/docker-compose.yml
+# (GPL-3.0). No image is published, so the app is built from a pinned upstream commit on first
+# start (needs network access to GitHub). Changes: WebVuln-Runner labels, port on ${WVR_BIND}.
+
+x-wvr-labels: &wvr-labels
+  io.webvuln-runner.managed: "true"
+  io.webvuln-runner.lab: ${WVR_LAB:-dvws-node}
+  io.webvuln-runner.instance: ${WVR_INSTANCE:-}
+  io.webvuln-runner.url: ${WVR_URL:-}
+  io.webvuln-runner.health: ${WVR_HEALTH:-}
+
+services:
+  dvws-mongo:
+    image: mongo:4.0.4
+    labels: *wvr-labels
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  dvws-mysql:
+    image: mysql:8
+    labels: *wvr-labels
+    environment:
+      MYSQL_ROOT_PASSWORD: mysecretpassword
+      MYSQL_DATABASE: dvws_sqldb
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u root -pmysecretpassword
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  web:
+    build: https://github.com/snoopysecurity/dvws-node.git#eb6e2886f2206b88bf709fe1fa311adc3ae3c34f
+    image: webvuln-runner/dvws-node:eb6e288
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-8089}:80"
+    command: sh -c "node scripts/seed-database.js && npm start"
+    environment:
+      SQL_LOCAL_CONN_URL: dvws-mysql
+      MONGO_LOCAL_CONN_URL: mongodb://dvws-mongo:27017/node-dvws
+    depends_on:
+      dvws-mongo: { condition: service_healthy }
+      dvws-mysql: { condition: service_healthy }

@@ -310,6 +310,8 @@ wvr_logs() {
 
 # wvr_probe "<type> <target>" — one readiness check.
 # http/https: any HTTP answer below 500 counts as ready. tcp: the port accepts connections.
+# Note: Docker's userland proxy accepts TCP connections on published loopback ports even
+# before the app listens, so "tcp" is only a weak signal; prefer http checks where possible.
 wvr_probe() {
   local type="${1%% *}" target="${1#* }" code
   case "$type" in

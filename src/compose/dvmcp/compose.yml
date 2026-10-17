@@ -1,0 +1,27 @@
+# Damn Vulnerable MCP Server - https://github.com/harishsg993010/damn-vulnerable-MCP-server
+# No image is published, so it is built from a pinned upstream commit on first start
+# (needs network access to GitHub). Ten MCP challenge servers speak SSE on /sse.
+
+x-wvr-labels: &wvr-labels
+  io.webvuln-runner.managed: "true"
+  io.webvuln-runner.lab: ${WVR_LAB:-dvmcp}
+  io.webvuln-runner.instance: ${WVR_INSTANCE:-}
+  io.webvuln-runner.url: ${WVR_URL:-}
+  io.webvuln-runner.health: ${WVR_HEALTH:-}
+
+services:
+  dvmcp:
+    build: https://github.com/harishsg993010/damn-vulnerable-MCP-server.git#79734c19f5104cd11486c90926d245560f53befa
+    image: webvuln-runner/dvmcp:79734c1
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_C1:-9001}:9001"
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_C2:-9002}:9002"
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_C3:-9003}:9003"
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_C4:-9004}:9004"
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_C5:-9005}:9005"
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_C6:-9006}:9006"
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_C7:-9007}:9007"
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_C8:-9008}:9008"
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_C9:-9009}:9009"
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_C10:-9010}:9010"

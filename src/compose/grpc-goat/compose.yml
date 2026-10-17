@@ -1,0 +1,82 @@
+# gRPC Goat - adapted from https://github.com/rootxjs/grpc-goat/blob/main/docker-compose.yaml
+# (MIT License). gRPC Goat publishes no images, so every lab is built from a pinned upstream
+# commit on first start (needs network access to GitHub). Changes for WebVuln-Runner:
+#   - container_name removed, WebVuln-Runner labels added
+#   - lab ports are published on ${WVR_BIND} under 50051-50058 instead of 8001-8009
+#     (the upstream walkthrough uses 8001-8009: substitute the port shown by 'webvuln-runner status')
+#   - lab 006 shares its socket through a named volume instead of the host's /tmp;
+#     reach it with: docker compose -p <name> exec grpc-006 sh
+
+x-wvr-labels: &wvr-labels
+  io.webvuln-runner.managed: "true"
+  io.webvuln-runner.lab: ${WVR_LAB:-grpc-goat}
+  io.webvuln-runner.instance: ${WVR_INSTANCE:-}
+  io.webvuln-runner.url: ${WVR_URL:-}
+  io.webvuln-runner.health: ${WVR_HEALTH:-}
+
+services:
+  grpc-001:
+    build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-001-reflection-enabled
+    image: webvuln-runner/grpc-goat-001:4aefc57
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB1:-50051}:8001"
+
+  grpc-002:
+    build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-002-plaintext-grpc
+    image: webvuln-runner/grpc-goat-002:4aefc57
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB2:-50052}:8002"
+
+  grpc-003:
+    build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-003-insecure-tls
+    image: webvuln-runner/grpc-goat-003:4aefc57
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB3:-50053}:8003"
+
+  grpc-004:
+    build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-004-arbitary-mtls
+    image: webvuln-runner/grpc-goat-004:4aefc57
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB4:-50054}:8004"
+
+  grpc-005:
+    build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-005-arbitary-mtls-withsubject
+    image: webvuln-runner/grpc-goat-005:4aefc57
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB5:-50055}:8005"
+
+  grpc-006:
+    build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-006-pipe-world-read-write
+    image: webvuln-runner/grpc-goat-006:4aefc57
+    labels: *wvr-labels
+    volumes:
+      - grpc-006-socket:/tmp
+
+  grpc-007:
+    build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-007-sql-injection
+    image: webvuln-runner/grpc-goat-007:4aefc57
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB7:-50056}:8007"
+
+  grpc-008:
+    build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-008-grpc-command-injection
+    image: webvuln-runner/grpc-goat-008:4aefc57
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB8:-50057}:8008"
+
+  grpc-009:
+    build: https://github.com/rootxjs/grpc-goat.git#4aefc57e9df44d75fb92c0f8a2537b54213c51b7:labs/grpc-009-ssrf
+    image: webvuln-runner/grpc-goat-009:4aefc57
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_LAB9:-50058}:8009"
+
+volumes:
+  grpc-006-socket:

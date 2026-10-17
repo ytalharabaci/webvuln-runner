@@ -121,8 +121,12 @@ Exit codes: `0` ok, `1` error, `2` usage error, `3` lab started but did not answ
 | [APIGoat](https://github.com/yusufarbc/APIGoat) | `apigoat` | rest-api | Node.js, Express, MongoDB | image | 8000, 8001-8010 |
 | [OWASP crAPI](https://github.com/OWASP/crAPI) | `crapi` | rest-api | Java, Go, Python, PostgreSQL, MongoDB | compose | 8888, 8025 |
 | [OWASP NodeGoat](https://github.com/OWASP/NodeGoat) | `nodegoat` | web | Node.js, Express, MongoDB | compose | 4000 |
+| [DVWS-Node](https://github.com/snoopysecurity/dvws-node) | `dvws-node` | rest-api | Node.js, MongoDB, MySQL, GraphQL | compose | 8089 |
+| [Snyk Goof](https://github.com/snyk-labs/nodejs-goof) | `goof` | web | Node.js, Express, MongoDB | compose | 3001 |
+| [gRPC Goat](https://github.com/rootxjs/grpc-goat) | `grpc-goat` | grpc | Go, gRPC | compose | 50051, 50052-50058 |
+| [DVMCP](https://github.com/harishsg993010/damn-vulnerable-MCP-server) | `dvmcp` | ai-mcp | Python, MCP | compose | 9001, 9002-9010 |
 
-20 labs. Generated from `src/catalog.json` by `scripts/gen-readme-table.sh`.
+24 labs. Generated from `src/catalog.json` by `scripts/gen-readme-table.sh`.
 <!-- catalog:end -->
 
 Default credentials and first-run steps are shown after a lab starts. They are also listed in the catalog under `credentials` and `notes`.
@@ -196,7 +200,7 @@ CI runs all of these on every pull request. The integration test checks that lab
 [`index.html`](index.html) ([GitHub Pages](https://yusufarbc.github.io/webvuln-runner/)) renders the catalog with search and category filters. It also shows the command that starts each lab. It is static and read-only on purpose: a browser page cannot safely control your Docker daemon, and exposing the Docker socket to one would hand over root on your machine.
 
 ## Roadmap
-- More labs outside classic web apps: gRPC (gRPC Goat), MCP/AI (DVMCP), dvws-node, DjanGoat
+- More labs: OWASP Security Shepherd (its database images must be built from source), DjanGoat
 - Optional resource limits per lab
 - `webvuln-runner update` to pull newer catalog images
 - Optional local API for the web catalog, with authentication

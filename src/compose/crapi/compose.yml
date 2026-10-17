@@ -1,0 +1,256 @@
+# OWASP crAPI - adapted from https://github.com/OWASP/crAPI/blob/v1.1.6/deploy/docker/docker-compose.yml
+# Licensed under the Apache License, Version 2.0. Changes for WebVuln-Runner:
+#   - container_name removed so several instances can coexist
+#   - WebVuln-Runner labels on every service
+#   - only the web UI and the MailHog UI are published, on ${WVR_BIND} (127.0.0.1 by default)
+# Upstream publishes consistent version tags only as "latest", so that is what is used here.
+
+x-wvr-labels: &wvr-labels
+  io.webvuln-runner.managed: "true"
+  io.webvuln-runner.lab: ${WVR_LAB:-crapi}
+  io.webvuln-runner.instance: ${WVR_INSTANCE:-}
+  io.webvuln-runner.url: ${WVR_URL:-}
+  io.webvuln-runner.health: ${WVR_HEALTH:-}
+
+x-db-env: &db-env
+  DB_NAME: crapi
+  DB_USER: admin
+  DB_PASSWORD: crapisecretpassword
+  DB_HOST: postgresdb
+  DB_PORT: "5432"
+
+x-mongo-env: &mongo-env
+  MONGO_DB_HOST: mongodb
+  MONGO_DB_PORT: "27017"
+  MONGO_DB_USER: admin
+  MONGO_DB_PASSWORD: crapisecretpassword
+  MONGO_DB_NAME: crapi
+
+services:
+  crapi-identity:
+    image: crapi/crapi-identity:latest
+    labels: *wvr-labels
+    volumes:
+      - ./keys:/app/keys
+    environment:
+      <<: *db-env
+      LOG_LEVEL: INFO
+      SERVER_PORT: "8080"
+      ENABLE_SHELL_INJECTION: "false"
+      JWT_SECRET: crapi
+      MAILHOG_HOST: mailhog
+      MAILHOG_PORT: "1025"
+      MAILHOG_DOMAIN: example.com
+      SMTP_HOST: smtp.example.com
+      SMTP_PORT: "587"
+      SMTP_EMAIL: user@example.com
+      SMTP_PASS: xxxxxxxxxxxxxx
+      SMTP_FROM: no-reply@example.com
+      SMTP_AUTH: "true"
+      SMTP_STARTTLS: "true"
+      JWT_EXPIRATION: "604800000"
+      ENABLE_LOG4J: "false"
+      API_GATEWAY_URL: https://api.mypremiumdealership.com
+      TLS_ENABLED: "false"
+      TLS_KEYSTORE_TYPE: PKCS12
+      TLS_KEYSTORE: classpath:certs/server.p12
+      TLS_KEYSTORE_PASSWORD: passw0rd
+      TLS_KEY_PASSWORD: passw0rd
+      TLS_KEY_ALIAS: identity
+    depends_on:
+      postgresdb: { condition: service_healthy }
+      mongodb: { condition: service_healthy }
+      mailhog: { condition: service_healthy }
+    healthcheck:
+      test: /app/health.sh
+      interval: 15s
+      timeout: 15s
+      retries: 15
+    deploy:
+      resources:
+        limits: { cpus: "0.8", memory: 384M }
+
+  crapi-community:
+    image: crapi/crapi-community:latest
+    labels: *wvr-labels
+    environment:
+      <<: [*db-env, *mongo-env]
+      LOG_LEVEL: INFO
+      IDENTITY_SERVICE: crapi-identity:8080
+      SERVER_PORT: "8087"
+      TLS_ENABLED: "false"
+      TLS_CERTIFICATE: certs/server.crt
+      TLS_KEY: certs/server.key
+    depends_on:
+      postgresdb: { condition: service_healthy }
+      mongodb: { condition: service_healthy }
+      crapi-identity: { condition: service_healthy }
+    healthcheck:
+      test: /app/health.sh
+      interval: 15s
+      timeout: 15s
+      retries: 15
+    deploy:
+      resources:
+        limits: { cpus: "0.3", memory: 192M }
+
+  crapi-workshop:
+    image: crapi/crapi-workshop:latest
+    labels: *wvr-labels
+    environment:
+      <<: [*db-env, *mongo-env]
+      LOG_LEVEL: INFO
+      IDENTITY_SERVICE: crapi-identity:8080
+      SERVER_PORT: "8000"
+      SECRET_KEY: crapi
+      API_GATEWAY_URL: https://api.mypremiumdealership.com
+      TLS_ENABLED: "false"
+      TLS_CERTIFICATE: certs/server.crt
+      TLS_KEY: certs/server.key
+      FILES_LIMIT: "1000"
+    depends_on:
+      postgresdb: { condition: service_healthy }
+      mongodb: { condition: service_healthy }
+      crapi-identity: { condition: service_healthy }
+      crapi-community: { condition: service_healthy }
+    healthcheck:
+      test: /app/health.sh
+      interval: 15s
+      timeout: 15s
+      retries: 15
+    deploy:
+      resources:
+        limits: { cpus: "0.3", memory: 128M }
+
+  crapi-chatbot:
+    image: crapi/crapi-chatbot:latest
+    labels: *wvr-labels
+    environment:
+      <<: [*db-env, *mongo-env]
+      TLS_ENABLED: "false"
+      SERVER_PORT: "5002"
+      WEB_SERVICE: crapi-web
+      IDENTITY_SERVICE: crapi-identity:8080
+      API_USER: admin@example.com
+      API_PASSWORD: Admin!123
+      OPENAPI_SPEC: /app/resources/crapi-openapi-spec.json
+      DEFAULT_MODEL: gpt-4o-mini
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: "8000"
+    depends_on:
+      mongodb: { condition: service_healthy }
+      crapi-identity: { condition: service_healthy }
+      chromadb: { condition: service_healthy }
+
+  crapi-web:
+    image: crapi/crapi-web:latest
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-8888}:80"
+    environment:
+      COMMUNITY_SERVICE: crapi-community:8087
+      IDENTITY_SERVICE: crapi-identity:8080
+      WORKSHOP_SERVICE: crapi-workshop:8000
+      CHATBOT_SERVICE: crapi-chatbot:5002
+      MAILHOG_WEB_SERVICE: mailhog:8025
+      TLS_ENABLED: "false"
+    depends_on:
+      crapi-community: { condition: service_healthy }
+      crapi-identity: { condition: service_healthy }
+      crapi-workshop: { condition: service_healthy }
+    healthcheck:
+      test: curl 0.0.0.0:80/health
+      interval: 15s
+      timeout: 15s
+      retries: 15
+    deploy:
+      resources:
+        limits: { cpus: "0.3", memory: 128M }
+
+  postgresdb:
+    image: postgres:14
+    labels: *wvr-labels
+    command: ["postgres", "-c", "max_connections=500"]
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: crapisecretpassword
+      POSTGRES_DB: crapi
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 15s
+      timeout: 15s
+      retries: 15
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data/
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
+  mongodb:
+    image: mongo:4.4
+    labels: *wvr-labels
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: crapisecretpassword
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongodb:27017/test --quiet
+      interval: 15s
+      timeout: 15s
+      retries: 15
+      start_period: 20s
+    volumes:
+      - mongodb-data:/data/db
+    deploy:
+      resources:
+        limits: { cpus: "0.3", memory: 128M }
+
+  chromadb:
+    image: chromadb/chroma:latest
+    labels: *wvr-labels
+    environment:
+      IS_PERSISTENT: "TRUE"
+    healthcheck:
+      test: ["CMD", "/bin/bash", "-c", "cat < /dev/null > /dev/tcp/localhost/8000"]
+      interval: 15s
+      timeout: 15s
+      retries: 15
+      start_period: 20s
+    volumes:
+      - chromadb-data:/data
+
+  mailhog:
+    image: crapi/mailhog:latest
+    labels: *wvr-labels
+    user: root
+    environment:
+      MH_MONGO_URI: admin:crapisecretpassword@mongodb:27017
+      MH_STORAGE: mongodb
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_MAIL:-8025}:8025"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8025"]
+      interval: 15s
+      timeout: 15s
+      retries: 15
+    deploy:
+      resources:
+        limits: { cpus: "0.3", memory: 128M }
+
+  # The service name doubles as the hostname the lab's SSRF challenges point at.
+  api.mypremiumdealership.com:
+    image: crapi/gateway-service:latest
+    labels: *wvr-labels
+    healthcheck:
+      test: bash -c 'echo -n "GET / HTTP/1.1\n\n" > /dev/tcp/127.0.0.1/443'
+      interval: 15s
+      timeout: 15s
+      retries: 15
+      start_period: 15s
+    deploy:
+      resources:
+        limits: { cpus: "0.1", memory: 50M }
+
+volumes:
+  mongodb-data:
+  postgresql-data:
+  chromadb-data:
