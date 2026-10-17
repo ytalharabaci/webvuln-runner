@@ -65,8 +65,40 @@ sudo webvuln-runner up juice-shop
 ```
 
 ## Usage
-### Interactive menu
-Run `webvuln-runner` without arguments. The main menu lists your labs with their state and URL. Choose **Add a new lab** to pick one from the catalog. You can give it a name and a host port; a free port is suggested. WebVuln-Runner then pulls the image, starts the lab and waits until it answers. Select an existing lab to start, stop, check readiness, read logs or remove it.
+### Interactive menu (TUI)
+Run `webvuln-runner` without arguments. Use the arrow keys to move, Enter to choose, Tab to switch between buttons and Esc to go back.
+
+**Main menu.** It lists your labs with their state and URL, followed by the actions: add a lab, stop all labs, remove all labs, and choose where new labs listen. Pick **Quit** to leave; your labs keep running.
+
+![Main menu](assets/screenshots/main-menu.png)
+
+**Add a lab.** Choose how to find one: the whole catalog, by vulnerability topic, or by level.
+
+![Pick how to find a lab](assets/screenshots/add-pick-mode.png)
+
+Picking by topic shows how many labs cover each topic:
+
+![Topics](assets/screenshots/add-by-topic.png)
+
+Then choose a lab from the matching ones:
+
+![Labs for the chosen topic](assets/screenshots/add-lab-list.png)
+
+Accept or change the suggested name and host port (a free port is pre-filled), then confirm:
+
+![Confirm](assets/screenshots/add-confirm.png)
+
+WebVuln-Runner pulls the image, starts the lab and waits until the app answers. Then it shows the URL to open. If the lab has default credentials or first-run steps, they are shown next.
+
+![Lab ready](assets/screenshots/lab-ready.png)
+
+**Manage a lab.** Select a lab in the main menu to start or stop it, check its status, read its recent logs or remove it. Removing asks twice and asks separately before deleting data volumes.
+
+![Lab menu](assets/screenshots/lab-menu.png)
+
+**Status** shows whether the app answers, its ports and its CPU and memory use. For a failed lab it also shows the exit code and the last log lines.
+
+![Status](assets/screenshots/lab-status.png)
 
 ### Command line
 ```text
