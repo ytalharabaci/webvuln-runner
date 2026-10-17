@@ -1,0 +1,51 @@
+# Changelog
+
+All notable changes to WebVuln-Runner. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/).
+The release workflow publishes the section of the tagged version as the GitHub release notes.
+
+## [Unreleased]
+
+### Security
+- Every single-container lab runs on its own Docker network; labs can no longer reach each other.
+- Lab containers run with `no-new-privileges`, a process limit, a memory limit and a CPU limit.
+- Every Compose service sets `no-new-privileges`; `scripts/check-compose-policy.sh` enforces the Compose rules in CI (labels, no `container_name`, no privileged mode, no host network or PID namespace, no Docker socket mounts, ports on `${WVR_BIND}`).
+
+### Added
+- Lab states `failed`, `unhealthy`, `starting` and `restarting`; `status` explains failures with the exit code and the last log lines.
+- `stop --all`, `rm --all --yes [--volumes]` and `stats`; stop-all and cleanup entries in the menu.
+- `scripts/labs-smoke.sh` to start every lab for real; installer tests on six distributions in CI.
+- This changelog; release notes are taken from it. README explains how to roll back to an earlier release.
+
+## [2.1.0] - 2026-10-17
+
+### Added
+- Labs: OWASP WrongSecrets, BrokenCrystals, DjanGoat, OWASP Security Shepherd (28 labs).
+- Warning that DVMCP's challenges target the MCP client that connects to it.
+
+### Fixed
+- Menus no longer draw items outside the dialog box: their width follows the terminal and long items are shortened. Lab descriptions are limited to 50 characters.
+
+## [2.0.0] - 2026-10-17
+
+First release of the rewritten tool.
+
+### Security
+- Labs publish on `127.0.0.1` by default; exposing one on the network is an explicit, warned opt-in.
+- Only containers labelled `io.webvuln-runner.managed=true` are listed or touched; 1.x could stop or remove any container on the host.
+- Installers download a tagged release and refuse to install unless its SHA-256 checksum matches.
+- Root is no longer required, only access to the Docker daemon.
+
+### Added
+- Command line interface (`catalog`, `list`, `up`, `start`, `stop`, `status`, `logs`, `rm`, `validate`, `uninstall`) next to the menu.
+- Readiness checks, logs and status; several labs (and several copies of one lab) side by side on free ports.
+- JSON catalog with validation; Docker Compose labs: OWASP crAPI, NodeGoat, dvws-node, Snyk Goof, gRPC Goat, DVMCP (24 labs).
+- Installer for Debian/Ubuntu/Kali, Fedora/RHEL/Rocky/AlmaLinux and Arch, and `uninstall`.
+- Unit tests, integration tests, CI and a weekly image audit; README lab table and web catalog generated from the catalog.
+
+### Fixed
+- 1.x stopped the image name instead of the container and showed an empty name after creating a lab.
+- Broken catalog entries: XVWA and Hackazon images Docker can no longer pull, the removed DVWS image, the wrong DSVPWA port, DVGA's missing `WEB_HOST`, the Benchmark start command.
+
+[Unreleased]: https://github.com/yusufarbc/webvuln-runner/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/yusufarbc/webvuln-runner/compare/v2.0.0...v2.1.0
+[2.0.0]: https://github.com/yusufarbc/webvuln-runner/releases/tag/v2.0.0

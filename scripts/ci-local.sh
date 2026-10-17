@@ -4,7 +4,7 @@
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
-scripts=(src/webvuln-runner src/lib/*.sh installers/*.sh installers/*/*.sh scripts/*.sh tests/integration.sh tests/helpers/bin/docker)
+scripts=(src/webvuln-runner src/lib/*.sh installers/*.sh installers/*/*.sh scripts/*.sh tests/*.sh tests/helpers/bin/docker)
 failed=()
 step() { local name="$1"; shift; echo "== $name"; "$@" || failed+=("$name"); }
 

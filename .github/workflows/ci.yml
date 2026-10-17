@@ -16,11 +16,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Syntax check
         run: |
-          for f in src/webvuln-runner src/lib/*.sh installers/*.sh installers/*/*.sh scripts/*.sh tests/integration.sh tests/helpers/bin/docker; do
+          for f in src/webvuln-runner src/lib/*.sh installers/*.sh installers/*/*.sh scripts/*.sh tests/*.sh tests/helpers/bin/docker; do
             bash -n "$f"
           done
       - name: ShellCheck
-        run: shellcheck -x src/webvuln-runner src/lib/*.sh installers/*.sh installers/*/*.sh scripts/*.sh tests/integration.sh tests/helpers/bin/docker
+        run: shellcheck -x src/webvuln-runner src/lib/*.sh installers/*.sh installers/*/*.sh scripts/*.sh tests/*.sh tests/helpers/bin/docker
+      - name: CHANGELOG has an Unreleased or current-version section
+        run: ./scripts/changelog-section.sh "$(./src/webvuln-runner version | awk '{print $2}')" >/dev/null || ./scripts/changelog-section.sh Unreleased >/dev/null
 
   catalog:
     runs-on: ubuntu-latest
@@ -43,6 +45,19 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq bats
       - name: Unit tests
         run: bats tests/unit
+
+  installers:
+    runs-on: ubuntu-latest
+    needs: [lint]
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["debian:12", "ubuntu:24.04", "kalilinux/kali-rolling", "fedora:42", "rockylinux:9", "archlinux:latest"]
+    name: installer (${{ matrix.image }})
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install, check and uninstall in a fresh container
+        run: bash tests/installer-smoke.sh "${{ matrix.image }}"
 
   integration:
     runs-on: ubuntu-latest
