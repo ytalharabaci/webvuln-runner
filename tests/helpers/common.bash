@@ -11,6 +11,7 @@ wvr_test_setup() {
   export STUB_DIR STUB_LOG
   export PATH="$REPO_ROOT/tests/helpers/bin:$PATH"
   export WVR_HOME="$REPO_ROOT/src"
+  export WVR_STATE_DIR="$STUB_DIR/state"
   unset WVR_BIND WVR_CATALOG
 
   WVR_ROOT="$REPO_ROOT/src"

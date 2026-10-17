@@ -12,13 +12,23 @@ wvr_containers() {
   wvr_ps_managed "$@" --format "{{.ID}}\t{{.Label \"$WVR_LABEL_INSTANCE\"}}\t{{.Label \"$WVR_LABEL_LAB\"}}\t{{.State}}\t{{.Label \"$WVR_LABEL_URL\"}}\t{{.Label \"com.docker.compose.project\"}}\t{{.Status}}"
 }
 
+# Labs stopped through WebVuln-Runner. Many apps exit non-zero when stopped (Go services
+# exit 2, some Node apps 1), so an exit code alone does not tell a stop from a crash.
+wvr_mark_stopped()  { mkdir -p "$WVR_STATE_DIR/stopped" 2>/dev/null && : >"$WVR_STATE_DIR/stopped/$1"; }
+wvr_clear_stopped() { rm -f "$WVR_STATE_DIR/stopped/$1" 2>/dev/null; return 0; }
+wvr_stopped_list() {
+  local f
+  for f in "$WVR_STATE_DIR"/stopped/*; do [[ -e "$f" ]] && printf '%s ' "${f##*/}"; done
+  return 0
+}
+
 # One line per instance: name, lab, state, url.
 # State is the most important one among its containers:
 #   failed > unhealthy > restarting > starting > partial n/m > running | stopped
-# A container that exited with 0, 137 or 143 (SIGKILL/SIGTERM from "stop") counts as stopped;
-# any other exit code means it failed.
+# A container that exited with 0, 137 or 143 counts as stopped, and so does any container
+# of a lab WebVuln-Runner stopped itself. Any other exit code means it failed.
 wvr_instances() {
-  wvr_containers | awk -F'\t' '
+  wvr_containers | awk -F'\t' -v stopped=" $(wvr_stopped_list) " '
     function rank(s) { return s == "failed" ? 4 : s == "unhealthy" ? 3 : s == "restarting" ? 2 : s == "starting" ? 1 : 0 }
     $2 == "" { next }
     {
@@ -36,7 +46,7 @@ wvr_instances() {
         code = $7
         if (match(code, /\([0-9]+\)/)) {
           code = substr(code, RSTART + 1, RLENGTH - 2)
-          if (code != "0" && code != "137" && code != "143") cs = "failed"
+          if (code != "0" && code != "137" && code != "143" && index(stopped, " " k " ") == 0) cs = "failed"
         }
       }
       if (cs == "running" || cs == "unhealthy" || cs == "starting") run[k]++
@@ -205,6 +215,7 @@ wvr_up() {
     wvr_up_image "$id" "$name" "$bind" "$plan" "$url" "$health"
   fi || return 1
 
+  wvr_clear_stopped "$name"
   wvr_info "Lab '$name' ($id) started."
   while IFS=$'\t' read -r pname _ host scheme path; do
     wvr_info "  $pname: $(wvr_port_url "$bind" "$host" "$scheme" "$path")"
@@ -314,6 +325,7 @@ wvr_up_compose() {
 wvr_start() {
   local project ids
   wvr_require_instance "$1" || return 1
+  wvr_clear_stopped "$1"
   project="$(wvr_instance_project "$1")"
   if [[ -n "$project" ]]; then
     docker compose -p "$project" start
@@ -327,6 +339,7 @@ wvr_start() {
 wvr_stop() {
   local project ids
   wvr_require_instance "$1" || return 1
+  wvr_mark_stopped "$1"
   project="$(wvr_instance_project "$1")"
   if [[ -n "$project" ]]; then
     docker compose -p "$project" stop
@@ -354,6 +367,7 @@ wvr_rm() {
     if [[ "$volumes" == "--volumes" ]]; then docker rm -f -v $ids >/dev/null; else docker rm -f $ids >/dev/null; fi
     wvr_rm_network "$name"
   fi
+  wvr_clear_stopped "$name"
 }
 
 # Bulk operations walk the managed instances only.

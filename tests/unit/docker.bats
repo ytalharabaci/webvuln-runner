@@ -242,3 +242,23 @@ create_call() { grep '^create ' "$STUB_LOG"; }
   grep -qx 'rm -f -v bbb222' "$STUB_LOG"
   ! grep -q 'postgres' <(grep -E '^(stop|rm) ' "$STUB_LOG") || false
 }
+
+@test "a non-zero exit after stopping through WebVuln-Runner is not a failure" {
+  add_managed g1 grpc-lab grpc-goat exited "" grpc-lab "Exited (2) 3 seconds ago"
+  run wvr_instances
+  [[ "$output" == *"$(printf 'grpc-lab\tgrpc-goat\tfailed')"* ]]
+  run wvr_stop grpc-lab
+  run wvr_instances
+  [[ "$output" == *"$(printf 'grpc-lab\tgrpc-goat\tstopped')"* ]]
+  run wvr_start grpc-lab
+  run wvr_instances
+  [[ "$output" == *"$(printf 'grpc-lab\tgrpc-goat\tfailed')"* ]]
+}
+
+@test "rm forgets that a lab was stopped" {
+  add_managed a1 lab-one dsvpwa exited "" "" "Exited (0) 1 second ago"
+  run wvr_stop lab-one
+  [ -e "$WVR_STATE_DIR/stopped/lab-one" ]
+  run wvr_rm lab-one
+  [ ! -e "$WVR_STATE_DIR/stopped/lab-one" ]
+}
