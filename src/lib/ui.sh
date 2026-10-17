@@ -16,19 +16,38 @@ wvr_textbox() {
 
 wvr_pause() { read -r -p "Press Enter to return to the menu... " _; }
 
+# Dialog width that fits the terminal (whiptail draws long items outside the box otherwise).
+wvr_tui_width() {
+  local cols
+  cols="$(tput cols 2>/dev/null || echo 80)"
+  [[ "$cols" =~ ^[0-9]+$ ]] || cols=80
+  cols=$(( cols - 4 ))
+  (( cols > 100 )) && cols=100
+  (( cols < 50 )) && cols=50
+  printf '%s\n' "$cols"
+}
+
+# wvr_fit <text> <max length> — shortens text with "..." so it fits.
+wvr_fit() {
+  if (( ${#1} > $2 )); then printf '%s...\n' "${1:0:$(( $2 - 3 ))}"; else printf '%s\n' "$1"; fi
+}
+
 wvr_tui_main() {
-  local choice name lab state url
+  local choice name lab state url width rows tagw
   local -a items
   while true; do
+    width="$(wvr_tui_width)"
+    rows="$(wvr_instances)"
+    tagw="$(awk -F'\t' 'length($1) > m { m = length($1) } END { print (m > 5 ? m : 5) }' <<<"$rows")"
     items=()
     while IFS=$'\t' read -r name lab state url; do
       [[ -z "$name" ]] && continue
-      items+=("$name" "$(printf '%-11s %-16s %s' "$state" "$lab" "$url")")
-    done < <(wvr_instances)
+      items+=("$name" "$(wvr_fit "$(printf '%-9s %-15s %s' "$state" "$lab" "$url")" $(( width - tagw - 10 )))")
+    done <<<"$rows"
     items+=(">add" "Add a new lab from the catalog")
-    items+=(">bind" "Change where new labs are published (now $WVR_TUI_BIND)")
+    items+=(">bind" "$(wvr_fit "Where new labs listen (now $WVR_TUI_BIND)" $(( width - tagw - 10 )))")
     choice="$(wvr_wt --title "Your labs" --ok-button "Select" --cancel-button "Quit" \
-      --menu "Select a lab to manage it, or add a new one." 22 100 14 "${items[@]}")" || return 0
+      --menu "Select a lab to manage it, or add a new one." 22 "$width" 14 "${items[@]}")" || return 0
     case "$choice" in
       ">add")  wvr_tui_add ;;
       ">bind") wvr_tui_bind ;;
@@ -38,15 +57,17 @@ wvr_tui_main() {
 }
 
 wvr_tui_add() {
-  local id lname cat type desc note name plan first port summary out
+  local id cat type desc note name plan first port summary out width tagw
   local -a items
-  while IFS=$'\t' read -r id lname cat type desc; do
+  width="$(wvr_tui_width)"
+  tagw="$(wvr_cjq '[.labs[].id | length] | max')"
+  while IFS=$'\t' read -r id _ cat type desc; do
     note=""
-    if [[ "$type" == "compose" ]] && ! wvr_have_compose; then note=" (needs docker compose)"; fi
-    items+=("$id" "[$cat] $lname - $desc$note")
+    if [[ "$type" == "compose" ]] && ! wvr_have_compose; then note=" (needs compose)"; fi
+    items+=("$id" "$(wvr_fit "[$cat] $desc$note" $(( width - tagw - 10 )))")
   done < <(wvr_catalog_list)
 
-  id="$(wvr_wt --title "Add a lab" --menu "Choose a lab:" 22 118 14 "${items[@]}")" || return 0
+  id="$(wvr_wt --title "Add a lab" --menu "Choose a lab:" 22 "$width" 14 "${items[@]}")" || return 0
   if [[ "$(wvr_catalog_get "$id" .type)" == "compose" ]] && ! wvr_have_compose; then
     wvr_msg "'$id' consists of several containers and needs the Docker Compose v2 plugin ('docker compose').\n\nInstall it and try again." "Docker Compose required"
     return 0

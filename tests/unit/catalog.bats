@@ -105,3 +105,10 @@ lab() { # id host [extra json fields]
   [ "${lines[0]}" = "$(printf 'web\t8080\t8080\thttp\t/WebGoat')" ]
   [ "${lines[1]}" = "$(printf 'webwolf\t9090\t9090\thttp\t/WebWolf')" ]
 }
+
+@test "descriptions longer than 50 characters are rejected" {
+  f="$(write_catalog '[{"id":"a","name":"A","description":"This description is far too long to fit into the TUI menu","category":"web","type":"image","image":"x/a:1","ports":[{"name":"web","container":80,"host":8001}]}]')"
+  run wvr_catalog_validate "$f"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"at most 50 characters"* ]]
+}
