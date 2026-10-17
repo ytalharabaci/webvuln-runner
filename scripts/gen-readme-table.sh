@@ -22,10 +22,10 @@ table="$(jq -r '
   "\(.labs | length) labs. Generated from `src/catalog.json` by `scripts/gen-readme-table.sh`."
 ' "$CATALOG")"
 
-grep -qF "$START" "$README" && grep -qF "$END" "$README" || {
+if ! grep -qF "$START" "$README" || ! grep -qF "$END" "$README"; then
   echo "README.md is missing the $START / $END markers" >&2
   exit 1
-}
+fi
 
 new="$(awk -v start="$START" -v end="$END" -v table="$table" '
   $0 == start { print; print table; skip = 1; next }

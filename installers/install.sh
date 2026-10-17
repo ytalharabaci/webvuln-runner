@@ -35,15 +35,26 @@ detect_family() {
   esac
 }
 
+# True if apt can actually install the package (apt-cache show also lists packages without a candidate).
+apt_has() {
+  local c
+  c="$(apt-cache policy "$1" 2>/dev/null | awk '/Candidate:/ { print $2 }')"
+  [[ -n "$c" && "$c" != "(none)" ]]
+}
+
+# A working docker CLI, not e.g. the Docker Desktop shim WSL puts on PATH.
+have_docker() { [[ -x /usr/bin/docker ]] || command -v dockerd >/dev/null 2>&1; }
+
 deps_debian() {
   apt-get update -qq
   local pkgs=(whiptail jq curl ca-certificates tar)
-  command -v docker >/dev/null 2>&1 || pkgs+=(docker.io)
+  have_docker || pkgs+=(docker.io)
   if ! docker compose version >/dev/null 2>&1; then
-    if apt-cache show docker-compose-v2 >/dev/null 2>&1; then pkgs+=(docker-compose-v2)
-    elif apt-cache show docker-compose-plugin >/dev/null 2>&1; then pkgs+=(docker-compose-plugin)
-    else warn "no Docker Compose v2 package found; multi-container labs (crAPI, NodeGoat, ...) will be unavailable"
-    fi
+    # Ubuntu: docker-compose-v2, Docker's repo: docker-compose-plugin, Debian 13+/Kali: docker-compose (v2)
+    local p
+    for p in docker-compose-v2 docker-compose-plugin docker-compose; do
+      if apt_has "$p"; then pkgs+=("$p"); break; fi
+    done
   fi
   DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${pkgs[@]}"
 }
@@ -51,7 +62,7 @@ deps_debian() {
 deps_redhat() {
   # shellcheck disable=SC1091
   . /etc/os-release
-  if ! command -v docker >/dev/null 2>&1; then
+  if ! have_docker; then
     local repo
     case "${ID:-}" in
       fedora) repo="https://download.docker.com/linux/fedora/docker-ce.repo" ;;
@@ -72,7 +83,7 @@ deps_redhat() {
 
 deps_arch() {
   local pkgs=(libnewt jq curl tar)
-  command -v docker >/dev/null 2>&1 || pkgs+=(docker)
+  have_docker || pkgs+=(docker)
   docker compose version >/dev/null 2>&1 || pkgs+=(docker-compose)
   pacman -Sy --noconfirm --needed "${pkgs[@]}"
 }
