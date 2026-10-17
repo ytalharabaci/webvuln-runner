@@ -4,7 +4,7 @@
     {
       "id": "test-image",
       "name": "Test image lab",
-      "description": "Single nginx container used by the integration tests",
+      "description": "Single nginx container for integration tests",
       "category": "web",
       "stack": ["nginx"],
       "type": "image",
@@ -20,7 +20,7 @@
     {
       "id": "test-compose",
       "name": "Test compose lab",
-      "description": "Two-service Compose project used by the integration tests",
+      "description": "Two-service Compose project for tests",
       "category": "web",
       "stack": ["nginx"],
       "type": "compose",

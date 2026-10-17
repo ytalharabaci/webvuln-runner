@@ -63,7 +63,9 @@ wvr_catalog_validate() {
             ( if (.id | type) != "string" or (.id | test("^[a-z0-9][a-z0-9-]*$") | not)
               then lab_err("id must match ^[a-z0-9][a-z0-9-]*$") else empty end ),
             ( if (.name | type) != "string" or .name == "" then lab_err("missing name") else empty end ),
-            ( if (.description | type) != "string" or .description == "" then lab_err("missing description") else empty end ),
+            ( if (.description | type) != "string" or .description == "" then lab_err("missing description")
+              elif (.description | length) > 50 then lab_err("description must be at most 50 characters (it is shown in the TUI menu)")
+              else empty end ),
             ( if (.category as $c | $cats | index($c)) == null
               then lab_err("category must be one of \($cats | join(", "))") else empty end ),
             ( if .type == "image" then

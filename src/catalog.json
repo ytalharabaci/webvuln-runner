@@ -4,7 +4,7 @@
     {
       "id": "juice-shop",
       "name": "OWASP Juice Shop",
-      "description": "Modern single-page web shop covering the entire OWASP Top 10 and beyond",
+      "description": "Modern web shop covering the full OWASP Top 10",
       "category": "web",
       "stack": [
         "Node.js",
@@ -27,7 +27,7 @@
     {
       "id": "dvwa",
       "name": "DVWA",
-      "description": "Damn Vulnerable Web Application - classic PHP/MySQL lab with adjustable difficulty",
+      "description": "Classic PHP/MySQL lab with difficulty levels",
       "category": "web",
       "stack": [
         "PHP",
@@ -51,7 +51,7 @@
     {
       "id": "webgoat",
       "name": "OWASP WebGoat",
-      "description": "Guided lessons on common server-side vulnerabilities, with the WebWolf helper app",
+      "description": "Guided server-side lessons, with WebWolf",
       "category": "training",
       "stack": [
         "Java",
@@ -86,7 +86,7 @@
     {
       "id": "bwapp",
       "name": "bWAPP",
-      "description": "Buggy web application with 100+ vulnerabilities",
+      "description": "Buggy web app with 100+ vulnerabilities",
       "category": "web",
       "stack": [
         "PHP",
@@ -114,7 +114,7 @@
     {
       "id": "mutillidae",
       "name": "OWASP Mutillidae II",
-      "description": "Deliberately vulnerable PHP application with hints and tutorials",
+      "description": "Vulnerable PHP app with hints and tutorials",
       "category": "web",
       "stack": [
         "PHP",
@@ -138,7 +138,7 @@
     {
       "id": "xvwa",
       "name": "XVWA",
-      "description": "Xtreme Vulnerable Web Application - badly coded PHP/MySQL app",
+      "description": "Badly coded PHP/MySQL application",
       "category": "web",
       "stack": [
         "PHP",
@@ -161,7 +161,7 @@
     {
       "id": "vampi",
       "name": "VAmPI",
-      "description": "Vulnerable REST API (Flask) built around the OWASP API Security Top 10",
+      "description": "Vulnerable Flask REST API (OWASP API Top 10)",
       "category": "rest-api",
       "stack": [
         "Python",
@@ -185,7 +185,7 @@
     {
       "id": "dvna",
       "name": "DVNA",
-      "description": "Damn Vulnerable NodeJS Application",
+      "description": "Vulnerable Node.js application",
       "category": "web",
       "stack": [
         "Node.js",
@@ -230,7 +230,7 @@
     {
       "id": "sqli-labs",
       "name": "SQLi-Labs",
-      "description": "Dozens of SQL injection challenges, error/blind/time based",
+      "description": "SQL injection challenges: error, blind, time",
       "category": "web",
       "stack": [
         "PHP",
@@ -254,7 +254,7 @@
     {
       "id": "vulnerableapp",
       "name": "OWASP VulnerableApp",
-      "description": "Extensible Spring Boot app with many vulnerability levels",
+      "description": "Spring Boot app with many vulnerability levels",
       "category": "web",
       "stack": [
         "Java",
@@ -277,7 +277,7 @@
     {
       "id": "pygoat",
       "name": "PyGoat",
-      "description": "Vulnerable Django application mapped to the OWASP Top 10",
+      "description": "Django app mapped to the OWASP Top 10",
       "category": "web",
       "stack": [
         "Python",
@@ -301,7 +301,7 @@
     {
       "id": "dvga",
       "name": "DVGA",
-      "description": "Damn Vulnerable GraphQL Application",
+      "description": "Vulnerable GraphQL application",
       "category": "graphql",
       "stack": [
         "Python",
@@ -327,7 +327,7 @@
     {
       "id": "hackazon",
       "name": "Hackazon",
-      "description": "Realistic vulnerable e-commerce site with AJAX and REST interfaces",
+      "description": "Realistic vulnerable e-commerce site",
       "category": "web",
       "stack": [
         "PHP",
@@ -350,7 +350,7 @@
     {
       "id": "owasp-benchmark",
       "name": "OWASP Benchmark",
-      "description": "Thousands of test cases for measuring SAST/DAST tool accuracy",
+      "description": "Test suite to score SAST/DAST tool accuracy",
       "category": "benchmark",
       "stack": [
         "Java"
@@ -378,7 +378,7 @@
     {
       "id": "dvws",
       "name": "DVWS (PHP)",
-      "description": "Damn Vulnerable Web Services - legacy PHP version with SOAP/XML services",
+      "description": "Legacy PHP web services (SOAP/XML)",
       "category": "rest-api",
       "stack": [
         "PHP",
@@ -401,7 +401,7 @@
     {
       "id": "dsvpwa",
       "name": "DSVPWA",
-      "description": "Damn Simple Vulnerable Python Web Application",
+      "description": "Simple vulnerable Python web application",
       "category": "web",
       "stack": [
         "Python"
@@ -423,7 +423,7 @@
     {
       "id": "apigoat",
       "name": "APIGoat",
-      "description": "Ten vulnerable REST APIs, one per OWASP API Security Top 10 (2023) risk",
+      "description": "Ten REST APIs, one per OWASP API Top 10 risk",
       "category": "rest-api",
       "stack": [
         "Node.js",
@@ -517,7 +517,7 @@
     {
       "id": "crapi",
       "name": "OWASP crAPI",
-      "description": "Completely ridiculous API - microservice car-owner platform full of BOLA, auth and business-logic flaws",
+      "description": "Car-owner microservices: BOLA, auth, logic flaws",
       "category": "rest-api",
       "stack": [
         "Java",
@@ -554,7 +554,7 @@
     {
       "id": "nodegoat",
       "name": "OWASP NodeGoat",
-      "description": "Node.js/Express app showing how the OWASP Top 10 applies to Node, incl. NoSQL and server-side JS injection",
+      "description": "OWASP Top 10 for Node.js, incl. NoSQL injection",
       "category": "web",
       "stack": [
         "Node.js",
@@ -580,7 +580,7 @@
     {
       "id": "dvws-node",
       "name": "DVWS-Node",
-      "description": "Damn Vulnerable Web Services - REST, SOAP, GraphQL and XML-RPC endpoints on Node.js",
+      "description": "REST, SOAP, GraphQL and XML-RPC services",
       "category": "rest-api",
       "stack": [
         "Node.js",
@@ -606,7 +606,7 @@
     {
       "id": "goof",
       "name": "Snyk Goof",
-      "description": "Vulnerable Node.js todo app focused on vulnerable dependencies, NoSQL injection and prototype pollution",
+      "description": "Node.js todo app with vulnerable dependencies",
       "category": "web",
       "stack": [
         "Node.js",
@@ -630,7 +630,7 @@
     {
       "id": "grpc-goat",
       "name": "gRPC Goat",
-      "description": "Nine gRPC services: reflection, plaintext, weak TLS/mTLS, SQLi, command injection, SSRF and a world-writable socket",
+      "description": "Nine gRPC labs: TLS, reflection, SQLi, SSRF",
       "category": "grpc",
       "stack": [
         "Go",
@@ -691,7 +691,7 @@
     {
       "id": "dvmcp",
       "name": "DVMCP",
-      "description": "Damn Vulnerable MCP Server - ten Model Context Protocol challenges: prompt and tool poisoning, excessive permissions, token theft",
+      "description": "Ten MCP challenges: tool poisoning, token theft",
       "category": "ai-mcp",
       "stack": [
         "Python",
@@ -766,7 +766,7 @@
       },
       "health_timeout": 300,
       "ram_mb": 512,
-      "notes": "Connect an MCP client (e.g. Cline or Cursor) to http://127.0.0.1:9001/sse ... :9010/sse, one server per challenge.",
+      "notes": "The challenges attack the MCP client that connects. Use a throwaway client with no access to real files, API keys or a shell. Connect it to http://127.0.0.1:9001/sse ... :9010/sse, one server per challenge.",
       "source": "https://github.com/harishsg993010/damn-vulnerable-MCP-server"
     }
   ]

@@ -46,6 +46,7 @@ The labs are **intentionally vulnerable**. Treat every one of them as hostile co
 - Labs publish on `127.0.0.1`. Use `--bind 0.0.0.0` (or the TUI's bind option) only on an isolated lab network.
 - Docker isolates processes, but it is not a security boundary you should rely on against a compromised container. Do not run labs on machines holding sensitive data, and never on production infrastructure.
 - Running Docker requires root, or membership in the `docker` group — which is equivalent to root on that host. WebVuln-Runner itself does not need root; it needs access to the Docker daemon.
+- Some labs attack the *client* rather than wait to be attacked. DVMCP's challenges (tool poisoning, token theft and others) target the AI/MCP client that connects to it. Use a throwaway client with no access to real files, API keys or a shell.
 - Images come from third parties (see each lab's source link). The catalog pins version tags where upstream publishes them; a [weekly audit](.github/workflows/image-audit.yml) checks that every image can still be pulled.
 
 ## Quick start
