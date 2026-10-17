@@ -95,3 +95,29 @@ teardown() { wvr_test_teardown; }
   [ "$status" -eq 0 ]
   [[ "$output" == *"No running labs"* ]]
 }
+
+@test "catalog --topic lists only matching labs" {
+  run "$WVR_CLI" catalog --topic grpc
+  [ "$status" -eq 0 ]
+  [ "${#lines[@]}" -eq 2 ]
+  [[ "${lines[1]}" == grpc-goat* ]]
+}
+
+@test "catalog rejects unknown topics and options" {
+  run "$WVR_CLI" catalog --topic telepathy
+  [ "$status" -eq 2 ]
+  run "$WVR_CLI" catalog --bogus
+  [ "$status" -eq 2 ]
+}
+
+@test "catalog with no match says so" {
+  run "$WVR_CLI" catalog --topic grpc --level advanced
+  [ "$status" -eq 0 ]
+  [[ "$output" == "No lab matches." ]]
+}
+
+@test "topics lists topics with counts" {
+  run "$WVR_CLI" topics
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"llm-mcp"* ]]
+}

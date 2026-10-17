@@ -38,7 +38,8 @@ Start deliberately vulnerable web apps, APIs and benchmark targets in Docker —
 - **Single-container and Docker Compose labs:** multi-service labs such as OWASP crAPI and NodeGoat start as one unit.
 - **Beyond classic web labs:** REST and GraphQL APIs, Node.js, Java, Python and PHP stacks, and the OWASP Benchmark for measuring SAST/DAST tools.
 - **TUI and CLI:** a whiptail menu for interactive use, and a scriptable command line for automation and CI.
-- **One catalog:** [`src/catalog.json`](src/catalog.json) drives the TUI, the CLI, this README's lab table and the [web catalog](https://yusufarbc.github.io/webvuln-runner/).
+- **Pick by what you want to learn:** every lab is tagged with vulnerability topics (SQLi, SSRF, IDOR, JWT, ...) and a level. Use `webvuln-runner catalog --topic ssrf --level beginner`, the menu's "By topic" option, or the filters on the web catalog.
+- **One catalog:** [`src/catalog.json`](src/catalog.json) drives the TUI, the CLI, this README's lab table and the [web catalog](https://yusufarbc.github.io/webvuln-runner/). It records each lab's license and the date it was last verified to start.
 
 ## Safety model
 The labs are **intentionally vulnerable**. Treat every one of them as hostile code.
@@ -113,38 +114,67 @@ Exit codes: `0` ok, `1` error, `2` usage error, `3` lab started but did not answ
 
 ## Supported labs
 <!-- catalog:start -->
-| Lab | ID | Category | Stack | Type | Default port(s) |
-|---|---|---|---|---|---|
-| [OWASP Juice Shop](https://github.com/juice-shop/juice-shop) | `juice-shop` | web | Node.js, Angular | image | 3000 |
-| [DVWA](https://github.com/digininja/DVWA) | `dvwa` | web | PHP, MySQL | image | 8081 |
-| [OWASP WebGoat](https://github.com/WebGoat/WebGoat) | `webgoat` | training | Java, Spring | image | 8080, 9090 |
-| [bWAPP](http://www.itsecgames.com/) | `bwapp` | web | PHP, MySQL | image | 8082 |
-| [OWASP Mutillidae II](https://github.com/webpwnized/mutillidae) | `mutillidae` | web | PHP, MySQL | image | 8083 |
-| [XVWA](https://github.com/s4n7h0/xvwa) | `xvwa` | web | PHP, MySQL | image | 8084 |
-| [VAmPI](https://github.com/erev0s/VAmPI) | `vampi` | rest-api | Python, Flask | image | 5000 |
-| [DVNA](https://github.com/appsecco/dvna) | `dvna` | web | Node.js, SQLite | image | 9091 |
-| [VulnLab](https://github.com/Yavuzlar/VulnLab) | `vulnlab` | web | PHP | image | 8085 |
-| [SQLi-Labs](https://github.com/Audi-1/sqli-labs) | `sqli-labs` | web | PHP, MySQL | image | 8086 |
-| [OWASP VulnerableApp](https://github.com/SasanLabs/VulnerableApp) | `vulnerableapp` | web | Java, Spring | image | 9092 |
-| [PyGoat](https://github.com/adeyosemanputra/pygoat) | `pygoat` | web | Python, Django | image | 8100 |
-| [DVGA](https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application) | `dvga` | graphql | Python, GraphQL | image | 5013 |
-| [Hackazon](https://github.com/rapid7/hackazon) | `hackazon` | web | PHP, MySQL | image | 8087 |
-| [OWASP Benchmark](https://github.com/OWASP-Benchmark/BenchmarkJava) | `owasp-benchmark` | benchmark | Java | image | 8443 |
-| [DVWS (PHP)](https://github.com/snoopysecurity/dvws) | `dvws` | rest-api | PHP, SOAP | image | 8088 |
-| [DSVPWA](https://github.com/sgabe/DSVPWA) | `dsvpwa` | web | Python | image | 65413 |
-| [APIGoat](https://github.com/yusufarbc/APIGoat) | `apigoat` | rest-api | Node.js, Express, MongoDB | image | 8000, 8001-8010 |
-| [OWASP crAPI](https://github.com/OWASP/crAPI) | `crapi` | rest-api | Java, Go, Python, PostgreSQL, MongoDB | compose | 8888, 8025 |
-| [OWASP NodeGoat](https://github.com/OWASP/NodeGoat) | `nodegoat` | web | Node.js, Express, MongoDB | compose | 4000 |
-| [DVWS-Node](https://github.com/snoopysecurity/dvws-node) | `dvws-node` | rest-api | Node.js, MongoDB, MySQL, GraphQL | compose | 8089 |
-| [Snyk Goof](https://github.com/snyk-labs/nodejs-goof) | `goof` | web | Node.js, Express, MongoDB | compose | 3001 |
-| [gRPC Goat](https://github.com/rootxjs/grpc-goat) | `grpc-goat` | grpc | Go, gRPC | compose | 50051, 50052-50058 |
-| [DVMCP](https://github.com/harishsg993010/damn-vulnerable-MCP-server) | `dvmcp` | ai-mcp | Python, MCP | compose | 9001, 9002-9010 |
-| [OWASP WrongSecrets](https://github.com/OWASP/wrongsecrets) | `wrongsecrets` | training | Java, Spring | image | 8090 |
-| [BrokenCrystals](https://github.com/NeuraLegion/brokencrystals) | `brokencrystals` | web | Node.js, React, PostgreSQL, Keycloak | compose | 3100, 1080 |
-| [DjanGoat](https://github.com/Contrast-Security-OSS/DjanGoat) | `djangoat` | web | Python, Django, SQLite | compose | 8110 |
-| [OWASP Security Shepherd](https://github.com/OWASP/SecurityShepherd) | `security-shepherd` | training | Java, Tomcat, MariaDB, MongoDB | compose | 8445 |
+| Lab | ID | Category | Level | Topics | Type | Default port(s) | License | Verified |
+|---|---|---|---|---|---|---|---|---|
+| [OWASP Juice Shop](https://github.com/juice-shop/juice-shop) | `juice-shop` | web | beginner | sqli, nosqli, xss, csrf, ssrf, xxe, ssti, idor, authn, authz, jwt, path-traversal, file-upload, deserialization, business-logic, vulnerable-deps, misconfig, crypto | image | 3000 | MIT | 2026-10-17 |
+| [DVWA](https://github.com/digininja/DVWA) | `dvwa` | web | beginner | sqli, xss, csrf, cmdi, file-upload, path-traversal, authn | image | 8081 | GPL-3.0 | 2026-10-17 |
+| [OWASP WebGoat](https://github.com/WebGoat/WebGoat) | `webgoat` | training | beginner | sqli, xss, csrf, ssrf, xxe, idor, authn, jwt, path-traversal, deserialization, vulnerable-deps, crypto | image | 8080, 9090 | GPL-2.0-or-later | 2026-10-17 |
+| [bWAPP](http://www.itsecgames.com/) | `bwapp` | web | beginner | sqli, xss, csrf, ssrf, xxe, cmdi, path-traversal, file-upload, authn, misconfig, vulnerable-deps | image | 8082 | unknown | 2026-10-17 |
+| [OWASP Mutillidae II](https://github.com/webpwnized/mutillidae) | `mutillidae` | web | beginner | sqli, xss, csrf, xxe, cmdi, path-traversal, file-upload, authn, authz, misconfig | image | 8083 | GPL-3.0 | 2026-10-17 |
+| [XVWA](https://github.com/s4n7h0/xvwa) | `xvwa` | web | beginner | sqli, xss, csrf, ssrf, cmdi, ssti, idor, authn, authz, path-traversal, file-upload, deserialization, crypto | image | 8084 | GPL-3.0 | 2026-10-17 |
+| [VAmPI](https://github.com/erev0s/VAmPI) | `vampi` | rest-api | beginner | api-top10, sqli, idor, authn, authz, jwt | image | 5000 | MIT | 2026-10-17 |
+| [DVNA](https://github.com/appsecco/dvna) | `dvna` | web | beginner | sqli, xss, xxe, cmdi, authn, authz, deserialization, vulnerable-deps, misconfig | image | 9091 | MIT | 2026-10-17 |
+| [VulnLab](https://github.com/Yavuzlar/VulnLab) | `vulnlab` | web | beginner | sqli, xss, csrf, xxe, cmdi, ssti, idor, authn, path-traversal, file-upload, deserialization, business-logic | image | 8085 | CC-BY-NC-SA-4.0 | 2026-10-17 |
+| [SQLi-Labs](https://github.com/Audi-1/sqli-labs) | `sqli-labs` | web | beginner | sqli | image | 8086 | unknown | 2026-10-17 |
+| [OWASP VulnerableApp](https://github.com/SasanLabs/VulnerableApp) | `vulnerableapp` | web | intermediate | sqli, xss, ssrf, xxe, cmdi, jwt, path-traversal, file-upload | image | 9092 | Apache-2.0 | 2026-10-17 |
+| [PyGoat](https://github.com/adeyosemanputra/pygoat) | `pygoat` | web | beginner | sqli, xss, ssrf, xxe, cmdi, ssti, idor, authn, authz, deserialization, vulnerable-deps, misconfig, crypto | image | 8100 | MIT | 2026-10-17 |
+| [DVGA](https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application) | `dvga` | graphql | intermediate | graphql, sqli, xss, ssrf, cmdi, authn, authz, path-traversal, misconfig | image | 5013 | MIT | 2026-10-17 |
+| [Hackazon](https://github.com/rapid7/hackazon) | `hackazon` | web | intermediate | sqli, xss, csrf, cmdi, path-traversal | image | 8087 | Apache-2.0 | 2026-10-17 |
+| [OWASP Benchmark](https://github.com/OWASP-Benchmark/BenchmarkJava) | `owasp-benchmark` | benchmark | advanced | sqli, xss, cmdi, path-traversal, crypto | image | 8443 | GPL-2.0 | 2026-10-17 |
+| [DVWS (PHP)](https://github.com/snoopysecurity/dvws) | `dvws` | rest-api | intermediate | xxe, sqli, ssrf, cmdi, jwt, misconfig | image | 8088 | Apache-2.0 | 2026-10-17 |
+| [DSVPWA](https://github.com/sgabe/DSVPWA) | `dsvpwa` | web | beginner | sqli, xss, csrf, cmdi, authn, path-traversal, deserialization, misconfig | image | 65413 | MIT | 2026-10-17 |
+| [APIGoat](https://github.com/yusufarbc/APIGoat) | `apigoat` | rest-api | beginner | api-top10, idor, authn, authz, ssrf, business-logic, misconfig | image | 8000, 8001-8010 | GPL-3.0 | 2026-10-17 |
+| [OWASP crAPI](https://github.com/OWASP/crAPI) | `crapi` | rest-api | intermediate | api-top10, sqli, nosqli, ssrf, idor, authn, authz, jwt, business-logic, llm-mcp | compose | 8888, 8025 | Apache-2.0 | 2026-10-17 |
+| [OWASP NodeGoat](https://github.com/OWASP/NodeGoat) | `nodegoat` | web | beginner | nosqli, xss, csrf, ssrf, idor, authn, authz, vulnerable-deps, misconfig | compose | 4000 | Apache-2.0 | 2026-10-17 |
+| [DVWS-Node](https://github.com/snoopysecurity/dvws-node) | `dvws-node` | rest-api | intermediate | graphql, sqli, nosqli, xss, ssrf, xxe, cmdi, idor, authz, jwt, path-traversal, deserialization, misconfig | compose | 8089 | GPL-3.0 | 2026-10-17 |
+| [Snyk Goof](https://github.com/snyk-labs/nodejs-goof) | `goof` | web | beginner | vulnerable-deps, nosqli, xss, cmdi, secrets, misconfig | compose | 3001 | Apache-2.0 | 2026-10-17 |
+| [gRPC Goat](https://github.com/rootxjs/grpc-goat) | `grpc-goat` | grpc | intermediate | grpc, sqli, ssrf, cmdi, authn, misconfig, crypto | compose | 50051, 50052-50058 | MIT | 2026-10-17 |
+| [DVMCP](https://github.com/harishsg993010/damn-vulnerable-MCP-server) | `dvmcp` | ai-mcp | intermediate | llm-mcp, authz, secrets | compose | 9001, 9002-9010 | unknown | 2026-10-17 |
+| [OWASP WrongSecrets](https://github.com/OWASP/wrongsecrets) | `wrongsecrets` | training | beginner | secrets, misconfig, crypto | image | 8090 | AGPL-3.0 | 2026-10-17 |
+| [BrokenCrystals](https://github.com/NeuraLegion/brokencrystals) | `brokencrystals` | web | intermediate | sqli, xss, csrf, ssrf, xxe, cmdi, ssti, idor, authn, authz, jwt, path-traversal, file-upload, business-logic, secrets, misconfig, graphql, llm-mcp | compose | 3100, 1080 | MIT | 2026-10-17 |
+| [DjanGoat](https://github.com/Contrast-Security-OSS/DjanGoat) | `djangoat` | web | beginner | sqli, xss, csrf, authn, authz, misconfig | compose | 8110 | MIT | 2026-10-17 |
+| [OWASP Security Shepherd](https://github.com/OWASP/SecurityShepherd) | `security-shepherd` | training | beginner | sqli, xss, csrf, idor, authn, authz, crypto | compose | 8445 | GPL-3.0 | 2026-10-17 |
 
-28 labs. Generated from `src/catalog.json` by `scripts/gen-readme-table.sh`.
+### Labs by topic
+
+| Topic | Labs |
+|---|---|
+| `api-top10` | `vampi`, `apigoat`, `crapi` |
+| `authn` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `vampi`, `dvna`, `vulnlab`, `pygoat`, `dvga`, `dsvpwa`, `apigoat`, `crapi`, `nodegoat`, `grpc-goat`, `brokencrystals`, `djangoat`, `security-shepherd` |
+| `authz` | `juice-shop`, `mutillidae`, `xvwa`, `vampi`, `dvna`, `pygoat`, `dvga`, `apigoat`, `crapi`, `nodegoat`, `dvws-node`, `dvmcp`, `brokencrystals`, `djangoat`, `security-shepherd` |
+| `business-logic` | `juice-shop`, `vulnlab`, `apigoat`, `crapi`, `brokencrystals` |
+| `cmdi` | `dvwa`, `bwapp`, `mutillidae`, `xvwa`, `dvna`, `vulnlab`, `vulnerableapp`, `pygoat`, `dvga`, `hackazon`, `owasp-benchmark`, `dvws`, `dsvpwa`, `dvws-node`, `goof`, `grpc-goat`, `brokencrystals` |
+| `crypto` | `juice-shop`, `webgoat`, `xvwa`, `pygoat`, `owasp-benchmark`, `grpc-goat`, `wrongsecrets`, `security-shepherd` |
+| `csrf` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `vulnlab`, `hackazon`, `dsvpwa`, `nodegoat`, `brokencrystals`, `djangoat`, `security-shepherd` |
+| `deserialization` | `juice-shop`, `webgoat`, `xvwa`, `dvna`, `vulnlab`, `pygoat`, `dsvpwa`, `dvws-node` |
+| `file-upload` | `juice-shop`, `dvwa`, `bwapp`, `mutillidae`, `xvwa`, `vulnlab`, `vulnerableapp`, `brokencrystals` |
+| `graphql` | `dvga`, `dvws-node`, `brokencrystals` |
+| `grpc` | `grpc-goat` |
+| `idor` | `juice-shop`, `webgoat`, `xvwa`, `vampi`, `vulnlab`, `pygoat`, `apigoat`, `crapi`, `nodegoat`, `dvws-node`, `brokencrystals`, `security-shepherd` |
+| `jwt` | `juice-shop`, `webgoat`, `vampi`, `vulnerableapp`, `dvws`, `crapi`, `dvws-node`, `brokencrystals` |
+| `llm-mcp` | `crapi`, `dvmcp`, `brokencrystals` |
+| `misconfig` | `juice-shop`, `bwapp`, `mutillidae`, `dvna`, `pygoat`, `dvga`, `dvws`, `dsvpwa`, `apigoat`, `nodegoat`, `dvws-node`, `goof`, `grpc-goat`, `wrongsecrets`, `brokencrystals`, `djangoat` |
+| `nosqli` | `juice-shop`, `crapi`, `nodegoat`, `dvws-node`, `goof` |
+| `path-traversal` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `vulnlab`, `vulnerableapp`, `dvga`, `hackazon`, `owasp-benchmark`, `dsvpwa`, `dvws-node`, `brokencrystals` |
+| `secrets` | `goof`, `dvmcp`, `wrongsecrets`, `brokencrystals` |
+| `sqli` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `vampi`, `dvna`, `vulnlab`, `sqli-labs`, `vulnerableapp`, `pygoat`, `dvga`, `hackazon`, `owasp-benchmark`, `dvws`, `dsvpwa`, `crapi`, `dvws-node`, `grpc-goat`, `brokencrystals`, `djangoat`, `security-shepherd` |
+| `ssrf` | `juice-shop`, `webgoat`, `bwapp`, `xvwa`, `vulnerableapp`, `pygoat`, `dvga`, `dvws`, `apigoat`, `crapi`, `nodegoat`, `dvws-node`, `grpc-goat`, `brokencrystals` |
+| `ssti` | `juice-shop`, `xvwa`, `vulnlab`, `pygoat`, `brokencrystals` |
+| `vulnerable-deps` | `juice-shop`, `webgoat`, `bwapp`, `dvna`, `pygoat`, `nodegoat`, `goof` |
+| `xss` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `dvna`, `vulnlab`, `vulnerableapp`, `pygoat`, `dvga`, `hackazon`, `owasp-benchmark`, `dsvpwa`, `nodegoat`, `dvws-node`, `goof`, `brokencrystals`, `djangoat`, `security-shepherd` |
+| `xxe` | `juice-shop`, `webgoat`, `bwapp`, `mutillidae`, `dvna`, `vulnlab`, `vulnerableapp`, `pygoat`, `dvws`, `dvws-node`, `brokencrystals` |
+
+28 labs. Generated from `src/catalog.json` by `scripts/gen-readme-table.sh`. "Verified" is the last date `scripts/labs-smoke.sh` started the lab successfully.
 <!-- catalog:end -->
 
 Default credentials and first-run steps are shown after a lab starts. They are also listed in the catalog under `credentials` and `notes`.
@@ -189,6 +219,10 @@ Add an entry to [`src/catalog.json`](src/catalog.json):
   "ports": [{ "name": "web", "container": 80, "host": 8099, "scheme": "http", "path": "/" }],
   "ram_mb": 256,
   "credentials": "admin / admin",
+  "topics": ["sqli", "xss", "csrf"],
+  "level": "beginner",
+  "license": "MIT",
+  "verified": "2026-10-17",
   "source": "https://github.com/vendor/my-lab"
 }
 ```
@@ -196,6 +230,10 @@ Add an entry to [`src/catalog.json`](src/catalog.json):
 | Field | Meaning |
 |---|---|
 | `category` | `web`, `rest-api`, `graphql`, `grpc`, `ai-mcp`, `benchmark` or `training` |
+| `topics` | what the lab lets you practise, from: `sqli` `nosqli` `xss` `csrf` `ssrf` `xxe` `cmdi` `ssti` `idor` `authn` `authz` `jwt` `path-traversal` `file-upload` `deserialization` `business-logic` `secrets` `misconfig` `vulnerable-deps` `api-top10` `graphql` `grpc` `llm-mcp` `crypto`. Take them from the lab's own documentation |
+| `level` | `beginner`, `intermediate` or `advanced` |
+| `license` | the upstream project's SPDX license id, or `unknown` |
+| `verified` | date the lab last started successfully (`scripts/labs-smoke.sh --update-verified <id>` sets it) |
 | `type` | `image` (one container) or `compose` (a Compose project, see below) |
 | `image` | `repository:tag`. Use a version tag whenever upstream publishes one |
 | `ports` | first entry is the main port (shown as the URL and used for the readiness check); `host` defaults must be unique across the catalog |
@@ -230,8 +268,15 @@ CI runs all of these on every pull request. The integration test checks that lab
 [`index.html`](index.html) ([GitHub Pages](https://yusufarbc.github.io/webvuln-runner/)) renders the catalog with search and category filters. It also shows the command that starts each lab. It is static and read-only on purpose: a browser page cannot safely control your Docker daemon, and exposing the Docker socket to one would hand over root on your machine.
 
 ## Roadmap
-- Optional resource limits per lab
+- Security test profiles. Each one starts a lab, runs a tool against it and collects a report:
+  - a DAST scan with OWASP ZAP
+  - secret scanning against WrongSecrets
+  - comparing scanners on OWASP Benchmark
+- JSON/JUnit output and short-lived labs for CI pipelines
+- Pin images that only publish `latest` by digest, and report when upstream changes them
+- `webvuln-runner reset <name>` to restart a lab with clean data
 - `webvuln-runner update` to pull newer catalog images
+- An advanced profile for Kubernetes labs (e.g. Kubernetes Goat), which need a cluster rather than Docker alone
 - Optional local API for the web catalog, with authentication
 
 ## Contributing

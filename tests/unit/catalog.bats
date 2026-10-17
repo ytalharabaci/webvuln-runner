@@ -7,7 +7,7 @@ setup() { wvr_test_setup; }
 teardown() { wvr_test_teardown; }
 
 lab() { # id host [extra json fields]
-  printf '{"id":"%s","name":"Lab %s","description":"d","category":"web","type":"image","image":"x/%s:1.0","ports":[{"name":"web","container":80,"host":%s}]%s}' \
+  printf '{"id":"%s","name":"Lab %s","description":"d","category":"web","type":"image","image":"x/%s:1.0","level":"beginner","topics":["sqli"],"license":"MIT","verified":"2026-10-17","ports":[{"name":"web","container":80,"host":%s}]%s}' \
     "$1" "$1" "$1" "$2" "${3:+,$3}"
 }
 
@@ -120,4 +120,49 @@ lab() { # id host [extra json fields]
   [[ "$output" == *"hardening must be true or false"* ]]
   [[ "$output" == *"mem_limit_mb must be a number >= 64"* ]]
   [[ "$output" == *"cpus must be a positive number"* ]]
+}
+
+@test "topics must come from the vocabulary and may not be empty" {
+  f="$(write_catalog "[$(lab a 8001 '"topics":["sqli","telepathy"]'), $(lab b 8002 '"topics":[]')]")"
+  run wvr_catalog_validate "$f"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"a: unknown topic: telepathy"* ]]
+  [[ "$output" == *"b: needs a non-empty topics list"* ]]
+}
+
+@test "level, license and verified are checked" {
+  f="$(write_catalog "[$(lab a 8001 '"level":"expert","license":"","verified":"last week"')]")"
+  run wvr_catalog_validate "$f"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"level must be one of beginner, intermediate, advanced"* ]]
+  [[ "$output" == *"missing license"* ]]
+  [[ "$output" == *"verified must be a YYYY-MM-DD date"* ]]
+}
+
+@test "an old verified date only warns" {
+  f="$(write_catalog "[$(lab a 8001 '"verified":"2020-01-01"')]")"
+  run wvr_catalog_validate "$f"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"not verified in the last 180 days"*"a (2020-01-01)"* ]]
+}
+
+@test "every shipped lab has topics, a level, a license and a verified date" {
+  run jq -e '[.labs[] | select((.topics | length) == 0 or .level == null or .license == null or .verified == null)] | length == 0' "$REPO_ROOT/src/catalog.json"
+  [ "$status" -eq 0 ]
+}
+
+@test "filtering by topic, category and level combines" {
+  run wvr_catalog_list_filtered sqli "" ""
+  [[ "$output" == *"sqli-labs"* ]]
+  [[ "$output" != *"wrongsecrets"* ]]
+  run wvr_catalog_list_filtered secrets "" beginner
+  [ "$(cut -f1 <<<"$output" | sort | tr '\n' ' ')" = "goof wrongsecrets " ]
+  run wvr_catalog_list_filtered "" graphql ""
+  [ "$(cut -f1 <<<"$output")" = "dvga" ]
+}
+
+@test "topic counts match the catalog" {
+  run wvr_catalog_topics
+  [[ "$output" == *"$(printf 'grpc\t1')"* ]]
+  [ "$(grep -P '^sqli\t' <<<"$output" | cut -f2)" -eq "$(jq '[.labs[] | select(.topics | index("sqli"))] | length' "$REPO_ROOT/src/catalog.json")" ]
 }

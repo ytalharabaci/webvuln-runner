@@ -11,6 +11,7 @@ The release workflow publishes the section of the tagged version as the GitHub r
 - Every Compose service sets `no-new-privileges`; `scripts/check-compose-policy.sh` enforces the Compose rules in CI (labels, no `container_name`, no privileged mode, no host network or PID namespace, no Docker socket mounts, ports on `${WVR_BIND}`).
 
 ### Added
+- Vulnerability catalog: every lab has topics (24 topics such as `sqli`, `ssrf`, `idor`, `jwt`, `llm-mcp`), a level, its license and the date it was last verified. `catalog --topic/--category/--level`, `topics`, "By topic" and "By level" in the menu, topic and level filters on the web catalog, and a "Labs by topic" table in the README.
 - Lab states `failed`, `unhealthy`, `starting` and `restarting`; `status` explains failures with the exit code and the last log lines.
 - `stop --all`, `rm --all --yes [--volumes]` and `stats`; stop-all and cleanup entries in the menu.
 - `scripts/labs-smoke.sh` to start every lab for real; installer tests on six distributions in CI.

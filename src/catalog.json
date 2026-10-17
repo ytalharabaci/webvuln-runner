@@ -22,7 +22,30 @@
         }
       ],
       "ram_mb": 512,
-      "source": "https://github.com/juice-shop/juice-shop"
+      "source": "https://github.com/juice-shop/juice-shop",
+      "level": "beginner",
+      "topics": [
+        "sqli",
+        "nosqli",
+        "xss",
+        "csrf",
+        "ssrf",
+        "xxe",
+        "ssti",
+        "idor",
+        "authn",
+        "authz",
+        "jwt",
+        "path-traversal",
+        "file-upload",
+        "deserialization",
+        "business-logic",
+        "vulnerable-deps",
+        "misconfig",
+        "crypto"
+      ],
+      "license": "MIT",
+      "verified": "2026-10-17"
     },
     {
       "id": "dvwa",
@@ -46,7 +69,19 @@
       ],
       "ram_mb": 256,
       "credentials": "admin / password (click 'Create / Reset Database' first)",
-      "source": "https://github.com/digininja/DVWA"
+      "source": "https://github.com/digininja/DVWA",
+      "level": "beginner",
+      "topics": [
+        "sqli",
+        "xss",
+        "csrf",
+        "cmdi",
+        "file-upload",
+        "path-traversal",
+        "authn"
+      ],
+      "license": "GPL-3.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "webgoat",
@@ -81,7 +116,24 @@
       },
       "ram_mb": 1024,
       "credentials": "Register a new user on the login page",
-      "source": "https://github.com/WebGoat/WebGoat"
+      "source": "https://github.com/WebGoat/WebGoat",
+      "level": "beginner",
+      "topics": [
+        "sqli",
+        "xss",
+        "csrf",
+        "ssrf",
+        "xxe",
+        "idor",
+        "authn",
+        "jwt",
+        "path-traversal",
+        "deserialization",
+        "vulnerable-deps",
+        "crypto"
+      ],
+      "license": "GPL-2.0-or-later",
+      "verified": "2026-10-17"
     },
     {
       "id": "bwapp",
@@ -109,7 +161,23 @@
       },
       "ram_mb": 256,
       "credentials": "bee / bug (run /install.php first)",
-      "source": "http://www.itsecgames.com/"
+      "source": "http://www.itsecgames.com/",
+      "level": "beginner",
+      "topics": [
+        "sqli",
+        "xss",
+        "csrf",
+        "ssrf",
+        "xxe",
+        "cmdi",
+        "path-traversal",
+        "file-upload",
+        "authn",
+        "misconfig",
+        "vulnerable-deps"
+      ],
+      "license": "unknown",
+      "verified": "2026-10-17"
     },
     {
       "id": "mutillidae",
@@ -133,7 +201,22 @@
       ],
       "ram_mb": 256,
       "notes": "Click 'setup/reset the DB' on first launch",
-      "source": "https://github.com/webpwnized/mutillidae"
+      "source": "https://github.com/webpwnized/mutillidae",
+      "level": "beginner",
+      "topics": [
+        "sqli",
+        "xss",
+        "csrf",
+        "xxe",
+        "cmdi",
+        "path-traversal",
+        "file-upload",
+        "authn",
+        "authz",
+        "misconfig"
+      ],
+      "license": "GPL-3.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "xvwa",
@@ -156,7 +239,25 @@
         }
       ],
       "ram_mb": 256,
-      "source": "https://github.com/s4n7h0/xvwa"
+      "source": "https://github.com/s4n7h0/xvwa",
+      "level": "beginner",
+      "topics": [
+        "sqli",
+        "xss",
+        "csrf",
+        "ssrf",
+        "cmdi",
+        "ssti",
+        "idor",
+        "authn",
+        "authz",
+        "path-traversal",
+        "file-upload",
+        "deserialization",
+        "crypto"
+      ],
+      "license": "GPL-3.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "vampi",
@@ -180,7 +281,18 @@
       ],
       "ram_mb": 128,
       "notes": "Call GET /createdb once to populate the database",
-      "source": "https://github.com/erev0s/VAmPI"
+      "source": "https://github.com/erev0s/VAmPI",
+      "level": "beginner",
+      "topics": [
+        "api-top10",
+        "sqli",
+        "idor",
+        "authn",
+        "authz",
+        "jwt"
+      ],
+      "license": "MIT",
+      "verified": "2026-10-17"
     },
     {
       "id": "dvna",
@@ -203,7 +315,21 @@
         }
       ],
       "ram_mb": 256,
-      "source": "https://github.com/appsecco/dvna"
+      "source": "https://github.com/appsecco/dvna",
+      "level": "beginner",
+      "topics": [
+        "sqli",
+        "xss",
+        "xxe",
+        "cmdi",
+        "authn",
+        "authz",
+        "deserialization",
+        "vulnerable-deps",
+        "misconfig"
+      ],
+      "license": "MIT",
+      "verified": "2026-10-17"
     },
     {
       "id": "vulnlab",
@@ -225,7 +351,24 @@
         }
       ],
       "ram_mb": 256,
-      "source": "https://github.com/Yavuzlar/VulnLab"
+      "source": "https://github.com/Yavuzlar/VulnLab",
+      "level": "beginner",
+      "topics": [
+        "sqli",
+        "xss",
+        "csrf",
+        "xxe",
+        "cmdi",
+        "ssti",
+        "idor",
+        "authn",
+        "path-traversal",
+        "file-upload",
+        "deserialization",
+        "business-logic"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "sqli-labs",
@@ -249,7 +392,13 @@
       ],
       "ram_mb": 256,
       "notes": "Click 'Setup/reset Database for labs' first",
-      "source": "https://github.com/Audi-1/sqli-labs"
+      "source": "https://github.com/Audi-1/sqli-labs",
+      "level": "beginner",
+      "topics": [
+        "sqli"
+      ],
+      "license": "unknown",
+      "verified": "2026-10-17"
     },
     {
       "id": "vulnerableapp",
@@ -272,7 +421,20 @@
         }
       ],
       "ram_mb": 512,
-      "source": "https://github.com/SasanLabs/VulnerableApp"
+      "source": "https://github.com/SasanLabs/VulnerableApp",
+      "level": "intermediate",
+      "topics": [
+        "sqli",
+        "xss",
+        "ssrf",
+        "xxe",
+        "cmdi",
+        "jwt",
+        "path-traversal",
+        "file-upload"
+      ],
+      "license": "Apache-2.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "pygoat",
@@ -296,7 +458,25 @@
       ],
       "ram_mb": 256,
       "credentials": "Register a new user",
-      "source": "https://github.com/adeyosemanputra/pygoat"
+      "source": "https://github.com/adeyosemanputra/pygoat",
+      "level": "beginner",
+      "topics": [
+        "sqli",
+        "xss",
+        "ssrf",
+        "xxe",
+        "cmdi",
+        "ssti",
+        "idor",
+        "authn",
+        "authz",
+        "deserialization",
+        "vulnerable-deps",
+        "misconfig",
+        "crypto"
+      ],
+      "license": "MIT",
+      "verified": "2026-10-17"
     },
     {
       "id": "dvga",
@@ -322,7 +502,21 @@
         }
       ],
       "ram_mb": 256,
-      "source": "https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application"
+      "source": "https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application",
+      "level": "intermediate",
+      "topics": [
+        "graphql",
+        "sqli",
+        "xss",
+        "ssrf",
+        "cmdi",
+        "authn",
+        "authz",
+        "path-traversal",
+        "misconfig"
+      ],
+      "license": "MIT",
+      "verified": "2026-10-17"
     },
     {
       "id": "hackazon",
@@ -345,7 +539,17 @@
         }
       ],
       "ram_mb": 512,
-      "source": "https://github.com/rapid7/hackazon"
+      "source": "https://github.com/rapid7/hackazon",
+      "level": "intermediate",
+      "topics": [
+        "sqli",
+        "xss",
+        "csrf",
+        "cmdi",
+        "path-traversal"
+      ],
+      "license": "Apache-2.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "owasp-benchmark",
@@ -373,7 +577,17 @@
       "health_timeout": 300,
       "ram_mb": 2048,
       "notes": "First start compiles the app and takes several minutes; uses a self-signed certificate",
-      "source": "https://github.com/OWASP-Benchmark/BenchmarkJava"
+      "source": "https://github.com/OWASP-Benchmark/BenchmarkJava",
+      "level": "advanced",
+      "topics": [
+        "sqli",
+        "xss",
+        "cmdi",
+        "path-traversal",
+        "crypto"
+      ],
+      "license": "GPL-2.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "dvws",
@@ -396,7 +610,18 @@
         }
       ],
       "ram_mb": 256,
-      "source": "https://github.com/snoopysecurity/dvws"
+      "source": "https://github.com/snoopysecurity/dvws",
+      "level": "intermediate",
+      "topics": [
+        "xxe",
+        "sqli",
+        "ssrf",
+        "cmdi",
+        "jwt",
+        "misconfig"
+      ],
+      "license": "Apache-2.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "dsvpwa",
@@ -418,7 +643,20 @@
         }
       ],
       "ram_mb": 128,
-      "source": "https://github.com/sgabe/DSVPWA"
+      "source": "https://github.com/sgabe/DSVPWA",
+      "level": "beginner",
+      "topics": [
+        "sqli",
+        "xss",
+        "csrf",
+        "cmdi",
+        "authn",
+        "path-traversal",
+        "deserialization",
+        "misconfig"
+      ],
+      "license": "MIT",
+      "verified": "2026-10-17"
     },
     {
       "id": "apigoat",
@@ -512,7 +750,19 @@
         }
       ],
       "ram_mb": 1024,
-      "source": "https://github.com/yusufarbc/APIGoat"
+      "source": "https://github.com/yusufarbc/APIGoat",
+      "level": "beginner",
+      "topics": [
+        "api-top10",
+        "idor",
+        "authn",
+        "authz",
+        "ssrf",
+        "business-logic",
+        "misconfig"
+      ],
+      "license": "GPL-3.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "crapi",
@@ -549,7 +799,22 @@
       "health_timeout": 300,
       "ram_mb": 2048,
       "notes": "Sign up on the web UI; verification mails arrive in MailHog (the 'mail' port). The chatbot challenge needs an OpenAI API key.",
-      "source": "https://github.com/OWASP/crAPI"
+      "source": "https://github.com/OWASP/crAPI",
+      "level": "intermediate",
+      "topics": [
+        "api-top10",
+        "sqli",
+        "nosqli",
+        "ssrf",
+        "idor",
+        "authn",
+        "authz",
+        "jwt",
+        "business-logic",
+        "llm-mcp"
+      ],
+      "license": "Apache-2.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "nodegoat",
@@ -575,7 +840,21 @@
       "ram_mb": 512,
       "credentials": "admin / Admin_123 or user1 / User1_123",
       "notes": "The app image is built from source on first start, which takes a few minutes.",
-      "source": "https://github.com/OWASP/NodeGoat"
+      "source": "https://github.com/OWASP/NodeGoat",
+      "level": "beginner",
+      "topics": [
+        "nosqli",
+        "xss",
+        "csrf",
+        "ssrf",
+        "idor",
+        "authn",
+        "authz",
+        "vulnerable-deps",
+        "misconfig"
+      ],
+      "license": "Apache-2.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "dvws-node",
@@ -601,7 +880,25 @@
       "health_timeout": 240,
       "ram_mb": 1024,
       "notes": "The app image is built from source on first start, which takes a few minutes.",
-      "source": "https://github.com/snoopysecurity/dvws-node"
+      "source": "https://github.com/snoopysecurity/dvws-node",
+      "level": "intermediate",
+      "topics": [
+        "graphql",
+        "sqli",
+        "nosqli",
+        "xss",
+        "ssrf",
+        "xxe",
+        "cmdi",
+        "idor",
+        "authz",
+        "jwt",
+        "path-traversal",
+        "deserialization",
+        "misconfig"
+      ],
+      "license": "GPL-3.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "goof",
@@ -625,7 +922,18 @@
       ],
       "health_timeout": 120,
       "ram_mb": 768,
-      "source": "https://github.com/snyk-labs/nodejs-goof"
+      "source": "https://github.com/snyk-labs/nodejs-goof",
+      "level": "beginner",
+      "topics": [
+        "vulnerable-deps",
+        "nosqli",
+        "xss",
+        "cmdi",
+        "secrets",
+        "misconfig"
+      ],
+      "license": "Apache-2.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "grpc-goat",
@@ -686,7 +994,19 @@
       "health_timeout": 300,
       "ram_mb": 512,
       "notes": "Use grpcurl, e.g. grpcurl -plaintext 127.0.0.1:50051 list. Lab ports are 50051-50058 here instead of 8001-8009 in the upstream walkthrough; lab 006 runs inside the grpc-006 container.",
-      "source": "https://github.com/rootxjs/grpc-goat"
+      "source": "https://github.com/rootxjs/grpc-goat",
+      "level": "intermediate",
+      "topics": [
+        "grpc",
+        "sqli",
+        "ssrf",
+        "cmdi",
+        "authn",
+        "misconfig",
+        "crypto"
+      ],
+      "license": "MIT",
+      "verified": "2026-10-17"
     },
     {
       "id": "dvmcp",
@@ -767,7 +1087,15 @@
       "health_timeout": 300,
       "ram_mb": 512,
       "notes": "The challenges attack the MCP client that connects. Use a throwaway client with no access to real files, API keys or a shell. Connect it to http://127.0.0.1:9001/sse ... :9010/sse, one server per challenge.",
-      "source": "https://github.com/harishsg993010/damn-vulnerable-MCP-server"
+      "source": "https://github.com/harishsg993010/damn-vulnerable-MCP-server",
+      "level": "intermediate",
+      "topics": [
+        "llm-mcp",
+        "authz",
+        "secrets"
+      ],
+      "license": "unknown",
+      "verified": "2026-10-17"
     },
     {
       "id": "wrongsecrets",
@@ -792,7 +1120,15 @@
       "health_timeout": 180,
       "ram_mb": 1024,
       "notes": "This is the single-container edition; challenges needing Vault, Kubernetes or a cloud account are disabled.",
-      "source": "https://github.com/OWASP/wrongsecrets"
+      "source": "https://github.com/OWASP/wrongsecrets",
+      "level": "beginner",
+      "topics": [
+        "secrets",
+        "misconfig",
+        "crypto"
+      ],
+      "license": "AGPL-3.0",
+      "verified": "2026-10-17"
     },
     {
       "id": "brokencrystals",
@@ -828,7 +1164,30 @@
       "health_timeout": 300,
       "ram_mb": 2048,
       "notes": "API docs at /swagger and GraphiQL at /graphiql on the web port. Sent mails appear in MailCatcher (the mail port).",
-      "source": "https://github.com/NeuraLegion/brokencrystals"
+      "source": "https://github.com/NeuraLegion/brokencrystals",
+      "level": "intermediate",
+      "topics": [
+        "sqli",
+        "xss",
+        "csrf",
+        "ssrf",
+        "xxe",
+        "cmdi",
+        "ssti",
+        "idor",
+        "authn",
+        "authz",
+        "jwt",
+        "path-traversal",
+        "file-upload",
+        "business-logic",
+        "secrets",
+        "misconfig",
+        "graphql",
+        "llm-mcp"
+      ],
+      "license": "MIT",
+      "verified": "2026-10-17"
     },
     {
       "id": "djangoat",
@@ -853,7 +1212,18 @@
       "health_timeout": 300,
       "ram_mb": 256,
       "notes": "Built from source on first start (Python 2.7), which takes a few minutes.",
-      "source": "https://github.com/Contrast-Security-OSS/DjanGoat"
+      "source": "https://github.com/Contrast-Security-OSS/DjanGoat",
+      "level": "beginner",
+      "topics": [
+        "sqli",
+        "xss",
+        "csrf",
+        "authn",
+        "authz",
+        "misconfig"
+      ],
+      "license": "MIT",
+      "verified": "2026-10-17"
     },
     {
       "id": "security-shepherd",
@@ -880,7 +1250,19 @@
       "ram_mb": 1536,
       "credentials": "admin / password (you are asked to change it on first login)",
       "notes": "Built from source on first start (Maven), which can take 10+ minutes. Uses a self-signed certificate.",
-      "source": "https://github.com/OWASP/SecurityShepherd"
+      "source": "https://github.com/OWASP/SecurityShepherd",
+      "level": "beginner",
+      "topics": [
+        "sqli",
+        "xss",
+        "csrf",
+        "idor",
+        "authn",
+        "authz",
+        "crypto"
+      ],
+      "license": "GPL-3.0",
+      "verified": "2026-10-17"
     }
   ]
 }

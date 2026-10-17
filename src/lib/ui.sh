@@ -63,17 +63,37 @@ wvr_tui_main() {
 }
 
 wvr_tui_add() {
-  local id cat type desc note name plan first port summary out width tagw
+  local id type desc note name plan first port summary out width tagw
   local -a items
+  local mode topic="" level="" lvl prompt n
   width="$(wvr_tui_width)"
   tagw="$(wvr_cjq '[.labs[].id | length] | max')"
-  while IFS=$'\t' read -r id _ cat type desc; do
+
+  mode="$(wvr_wt --title "Add a lab" --menu "How do you want to pick a lab?" 13 "$width" 3 \
+    all   "All $(wvr_cjq '.labs | length') labs" \
+    topic "By vulnerability topic (SQLi, SSRF, IDOR, ...)" \
+    level "By level (beginner, intermediate, advanced)")" || return 0
+  prompt="Choose a lab:"
+  case "$mode" in
+    topic)
+      items=()
+      while IFS=$'\t' read -r topic n; do items+=("$topic" "$n lab(s)"); done < <(wvr_catalog_topics)
+      topic="$(wvr_wt --title "Add a lab" --menu "Choose a topic:" 22 "$width" 14 "${items[@]}")" || return 0
+      prompt="Labs covering '$topic':" ;;
+    level)
+      level="$(wvr_wt --title "Add a lab" --menu "Choose a level:" 12 "$width" 3 \
+        beginner "Guided or classic labs" intermediate "APIs, multi-service apps" advanced "Scanner benchmarks")" || return 0
+      prompt="$level labs:" ;;
+  esac
+
+  items=()
+  while IFS=$'\t' read -r id _ _ type desc lvl _; do
     note=""
     if [[ "$type" == "compose" ]] && ! wvr_have_compose; then note=" (needs compose)"; fi
-    items+=("$id" "$(wvr_fit "[$cat] $desc$note" $(( width - tagw - 10 )))")
-  done < <(wvr_catalog_list)
+    items+=("$id" "$(wvr_fit "[$lvl] $desc$note" $(( width - tagw - 10 )))")
+  done < <(wvr_catalog_list_filtered "$topic" "" "$level")
 
-  id="$(wvr_wt --title "Add a lab" --menu "Choose a lab:" 22 "$width" 14 "${items[@]}")" || return 0
+  id="$(wvr_wt --title "Add a lab" --menu "$prompt" 22 "$width" 14 "${items[@]}")" || return 0
   if [[ "$(wvr_catalog_get "$id" .type)" == "compose" ]] && ! wvr_have_compose; then
     wvr_msg "'$id' consists of several containers and needs the Docker Compose v2 plugin ('docker compose').\n\nInstall it and try again." "Docker Compose required"
     return 0

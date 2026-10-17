@@ -2,6 +2,14 @@
 # Catalog access and validation. The catalog is src/catalog.json; see README "Adding a lab".
 
 WVR_CATEGORIES='["web","rest-api","graphql","grpc","ai-mcp","benchmark","training"]'
+WVR_LEVELS='["beginner","intermediate","advanced"]'
+# What a lab lets you practise. Keep in sync with README "Adding a lab" and index.html.
+WVR_TOPICS='["sqli","nosqli","xss","csrf","ssrf","xxe","cmdi","ssti",
+  "idor","authn","authz","jwt","path-traversal","file-upload","deserialization",
+  "business-logic","secrets","misconfig","vulnerable-deps",
+  "api-top10","graphql","grpc","llm-mcp","crypto"]'
+# Labs not re-verified (scripts/labs-smoke.sh --update-verified) for this long get a warning.
+WVR_VERIFIED_MAX_DAYS=180
 
 wvr_catalog_init() {
   WVR_CATALOG="${WVR_CATALOG:-$WVR_HOME/catalog.json}"
@@ -21,7 +29,26 @@ wvr_catalog_get() {
 
 # One line per lab: id, name, category, type, description (tab separated)
 wvr_catalog_list() {
-  wvr_cjq '.labs[] | [.id, .name, .category, .type, .description] | @tsv'
+  wvr_catalog_list_filtered "" "" "" | cut -f1-5
+}
+
+# wvr_catalog_list_filtered <topic> <category> <level>   (empty = any; filters combine)
+# One line per matching lab: id, name, category, type, description, level, topics (comma separated)
+wvr_catalog_list_filtered() {
+  wvr_cjq --arg t "$1" --arg c "$2" --arg l "$3" '
+    .labs[]
+    | select($t == "" or ((.topics // []) | index($t)) != null)
+    | select($c == "" or .category == $c)
+    | select($l == "" or .level == $l)
+    | [.id, .name, .category, .type, .description, (.level // ""), ((.topics // []) | join(","))] | @tsv'
+}
+
+# One line per topic that at least one lab covers: topic, number of labs (tab separated)
+wvr_catalog_topics() {
+  wvr_cjq --argjson all "$WVR_TOPICS" '
+    [.labs[].topics // [] | .[]] as $used
+    | $all[] | . as $t | ($used | map(select(. == $t)) | length) as $n
+    | select($n > 0) | [$t, $n] | @tsv'
 }
 
 # One line per port of a lab: name, container port, default host port, scheme, path
@@ -45,7 +72,7 @@ wvr_catalog_validate() {
     return 1
   fi
 
-  problems="$(jq -r --argjson cats "$WVR_CATEGORIES" '
+  problems="$(jq -r --argjson cats "$WVR_CATEGORIES" --argjson topics "$WVR_TOPICS" --argjson levels "$WVR_LEVELS" '
     def lab_err($m): "\(.id // "<no id>"): \($m)";
     def is_port: type == "number" and . == floor and . >= 1 and . <= 65535;
 
@@ -91,6 +118,12 @@ wvr_catalog_validate() {
             ( if .health != null and ((.health.type // "http") | IN("http", "https", "tcp") | not)
               then lab_err("health.type must be http, https or tcp") else empty end ),
             ( if .env != null and (.env | type) != "object" then lab_err("env must be an object") else empty end ),
+            ( if (.topics | type) != "array" or (.topics | length) == 0 then lab_err("needs a non-empty topics list")
+              else (.topics[] | select(. as $t | $topics | index($t) | not) | . as $t | "unknown topic: \($t)") as $m | lab_err($m) end ),
+            ( if (.level as $l | $levels | index($l)) == null then lab_err("level must be one of \($levels | join(", "))") else empty end ),
+            ( if (.license | type) != "string" or .license == "" then lab_err("missing license (SPDX id, or \"unknown\")") else empty end ),
+            ( if (.verified | type) != "string" or (.verified | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$") | not)
+              then lab_err("verified must be a YYYY-MM-DD date") else empty end ),
             ( if .hardening != null and (.hardening | type) != "boolean" then lab_err("hardening must be true or false") else empty end ),
             ( if .mem_limit_mb != null and ((.mem_limit_mb | type) != "number" or .mem_limit_mb < 64)
               then lab_err("mem_limit_mb must be a number >= 64") else empty end ),
@@ -111,5 +144,14 @@ wvr_catalog_validate() {
   if [[ -n "$problems" ]]; then
     printf '%s\n' "$problems" >&2
     return 1
+  fi
+
+  # Not an error: old "verified" dates only mean nobody re-ran the smoke test lately.
+  local stale
+  stale="$(jq -r --argjson days "$WVR_VERIFIED_MAX_DAYS" '
+    (now - $days * 86400) as $limit
+    | .labs[] | select((.verified + "T00:00:00Z" | fromdateiso8601) < $limit) | "\(.id) (\(.verified))"' "$file" 2>/dev/null)"
+  if [[ -n "$stale" ]]; then
+    wvr_warn "not verified in the last $WVR_VERIFIED_MAX_DAYS days (run scripts/labs-smoke.sh --update-verified): $(tr '\n' ' ' <<<"$stale")"
   fi
 }
