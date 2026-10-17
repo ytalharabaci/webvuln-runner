@@ -97,7 +97,7 @@ teardown() { wvr_test_teardown; }
 }
 
 @test "catalog --topic lists only matching labs" {
-  run "$WVR_CLI" catalog --topic grpc
+  run "$WVR_CLI" catalog --topic api --category grpc
   [ "$status" -eq 0 ]
   [ "${#lines[@]}" -eq 2 ]
   [[ "${lines[1]}" == grpc-goat* ]]
@@ -111,7 +111,7 @@ teardown() { wvr_test_teardown; }
 }
 
 @test "catalog with no match says so" {
-  run "$WVR_CLI" catalog --topic grpc --level advanced
+  run "$WVR_CLI" catalog --topic api --level advanced
   [ "$status" -eq 0 ]
   [[ "$output" == "No lab matches." ]]
 }
@@ -119,5 +119,5 @@ teardown() { wvr_test_teardown; }
 @test "topics lists topics with counts" {
   run "$WVR_CLI" topics
   [ "$status" -eq 0 ]
-  [[ "$output" == *"llm-mcp"* ]]
+  [[ "$output" == *"logic-llm"* ]]
 }

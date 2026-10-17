@@ -223,12 +223,16 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
             const topicsEl = document.getElementById("topics");
             const levelEl = document.getElementById("level");
             const TOPIC_LABELS = {
-                "sqli": "SQL injection", "nosqli": "NoSQL injection", "xss": "XSS", "csrf": "CSRF", "ssrf": "SSRF",
-                "xxe": "XXE", "cmdi": "Command injection", "ssti": "SSTI", "idor": "IDOR / BOLA",
-                "authn": "Authentication", "authz": "Authorization", "jwt": "JWT", "path-traversal": "Path traversal",
-                "file-upload": "File upload", "deserialization": "Deserialization", "business-logic": "Business logic",
-                "secrets": "Secrets", "misconfig": "Misconfiguration", "vulnerable-deps": "Vulnerable dependencies",
-                "api-top10": "OWASP API Top 10", "graphql": "GraphQL", "grpc": "gRPC", "llm-mcp": "LLM / MCP", "crypto": "Crypto"
+                "injection": "Injection", "xss-csrf": "XSS & CSRF", "access-control": "Access control",
+                "authentication": "Authentication", "ssrf": "SSRF", "files": "Files & traversal", "api": "API, GraphQL & gRPC",
+                "secrets-config": "Secrets & config", "dependencies": "Dependencies", "logic-llm": "Logic & LLM"
+            };
+            const TOPIC_HINTS = {
+                "injection": "SQL/NoSQL, command, template (SSTI), XXE", "xss-csrf": "Cross-site scripting, request forgery",
+                "access-control": "IDOR / BOLA, authorization", "authentication": "Login, sessions, JWT",
+                "ssrf": "Server-side request forgery", "files": "Path traversal, file upload",
+                "api": "OWASP API Top 10, GraphQL, gRPC", "secrets-config": "Secrets, misconfiguration, crypto",
+                "dependencies": "Vulnerable components, insecure deserialization", "logic-llm": "Business logic, LLM / MCP"
             };
             const LEVEL_CLASS = { beginner: "bg-success", intermediate: "bg-warning text-dark", advanced: "bg-danger" };
             let labs = [];
@@ -295,7 +299,7 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
                 labs.forEach((l) => (l.topics || []).forEach((t) => { counts[t] = (counts[t] || 0) + 1; }));
                 topicsEl.innerHTML = Object.keys(TOPIC_LABELS).filter((t) => counts[t]).map((t) =>
                     `<button type="button" class="btn btn-sm btn-outline-secondary filter-btn${topics.has(t) ? " active" : ""}"
-                        data-topic="${esc(t)}" aria-pressed="${topics.has(t)}">${esc(TOPIC_LABELS[t])} (${counts[t]})</button>`).join("");
+                        data-topic="${esc(t)}" aria-pressed="${topics.has(t)}" title="${esc(TOPIC_HINTS[t])}">${esc(TOPIC_LABELS[t])} (${counts[t]})</button>`).join("");
             }
 
             function toggleTopic(e) {

@@ -5,6 +5,9 @@ The release workflow publishes the section of the tagged version as the GitHub r
 
 ## [Unreleased]
 
+### Changed
+- Vulnerability topics are grouped into 10 broader topics (`injection`, `xss-csrf`, `access-control`, `authentication`, `ssrf`, `files`, `api`, `secrets-config`, `dependencies`, `logic-llm`) instead of 24. The web catalog, the menu, the README and `catalog --topic` use the new topics.
+
 ## [2.2.0] - 2026-10-17
 
 ### Security
