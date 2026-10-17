@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Fake docker CLI for unit tests.
+# Every call is appended to $STUB_LOG. Canned state lives in $STUB_DIR:
+#   managed   tsv: id, instance, lab, state, url, compose project  (containers with the managed label)
+#   names     one container name per line (all containers on the "host")
+#   projects  one compose project name per line
+#   labels    "key=value" lines returned by inspect of a label
+printf '%s\n' "$*" >>"$STUB_LOG"
+
+arg_value() { # prints the value of a "label=<key>=" filter, if any
+  local key="$1"; shift
+  local a
+  for a in "$@"; do
+    [[ "$a" == "label=$key="* ]] && { printf '%s\n' "${a#label="$key"=}"; return; }
+  done
+}
+
+case "$1" in
+  info)    exit "${STUB_INFO_RC:-0}" ;;
+  pull)    exit "${STUB_PULL_RC:-0}" ;;
+  image)   exit "${STUB_IMAGE_RC:-0}" ;;
+  create)  [[ "${STUB_CREATE_RC:-0}" == 0 ]] && echo "c0ffee000001"; exit "${STUB_CREATE_RC:-0}" ;;
+  start)   exit "${STUB_START_RC:-0}" ;;
+  stop|rm|logs) exit 0 ;;
+  compose)
+    [[ "$2" == "version" ]] && exit "${STUB_COMPOSE_RC:-0}"
+    env | grep '^WVR_' | sort >"$STUB_DIR/compose_env"
+    exit "${STUB_COMPOSE_UP_RC:-0}" ;;
+  inspect)
+    for a in "$@"; do
+      if [[ "$a" == *'.Config.Labels'* ]]; then
+        key="$(sed -E 's/.*Labels "([^"]+)".*/\1/' <<<"$a")"
+        grep -m1 "^$key=" "$STUB_DIR/labels" 2>/dev/null | cut -d= -f2-
+        exit 0
+      fi
+    done
+    exit 0 ;;
+  ps)
+    shift
+    if [[ " $* " == *" label=io.webvuln-runner.managed=true "* ]]; then
+      inst="$(arg_value io.webvuln-runner.instance "$@")"
+      rows="$(cat "$STUB_DIR/managed" 2>/dev/null)"
+      [[ -n "$inst" ]] && rows="$(awk -F'\t' -v i="$inst" '$2 == i' <<<"$rows")"
+      [[ -z "$rows" ]] && exit 0
+      if [[ " $* " == *" -q "* ]]; then cut -f1 <<<"$rows"; else printf '%s\n' "$rows"; fi
+      exit 0
+    fi
+    project="$(arg_value com.docker.compose.project "$@")"
+    if [[ -n "$project" ]]; then
+      grep -Fxq -- "$project" "$STUB_DIR/projects" 2>/dev/null && echo "p0000001"
+      exit 0
+    fi
+    if [[ " $* " == *"{{.Names}}"* ]]; then
+      cat "$STUB_DIR/names" 2>/dev/null
+    fi
+    exit 0 ;;
+  *) exit 0 ;;
+esac

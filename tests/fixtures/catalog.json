@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "labs": [
+    {
+      "id": "test-image",
+      "name": "Test image lab",
+      "description": "Single nginx container used by the integration tests",
+      "category": "web",
+      "stack": ["nginx"],
+      "type": "image",
+      "image": "nginx:1.27-alpine",
+      "env": { "WVR_TEST": "1" },
+      "ports": [
+        { "name": "web", "container": 80, "host": 18080, "scheme": "http", "path": "/" },
+        { "name": "alt", "container": 8080, "host": 18081, "scheme": "tcp" }
+      ],
+      "ram_mb": 16,
+      "source": "https://hub.docker.com/_/nginx"
+    },
+    {
+      "id": "test-compose",
+      "name": "Test compose lab",
+      "description": "Two-service Compose project used by the integration tests",
+      "category": "web",
+      "stack": ["nginx"],
+      "type": "compose",
+      "compose": "compose/test-compose/compose.yml",
+      "ports": [{ "name": "web", "host": 18090, "scheme": "http", "path": "/" }],
+      "ram_mb": 32,
+      "source": "https://hub.docker.com/_/nginx"
+    }
+  ]
+}

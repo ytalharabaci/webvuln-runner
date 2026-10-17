@@ -1,0 +1,28 @@
+# OWASP NodeGoat - adapted from https://github.com/OWASP/NodeGoat/blob/master/docker-compose.yml
+# Licensed under the Apache License, Version 2.0. NodeGoat publishes no image, so the app is
+# built from a pinned upstream commit on first start (needs network access to GitHub).
+
+x-wvr-labels: &wvr-labels
+  io.webvuln-runner.managed: "true"
+  io.webvuln-runner.lab: ${WVR_LAB:-nodegoat}
+  io.webvuln-runner.instance: ${WVR_INSTANCE:-}
+  io.webvuln-runner.url: ${WVR_URL:-}
+  io.webvuln-runner.health: ${WVR_HEALTH:-}
+
+services:
+  web:
+    build: https://github.com/OWASP/NodeGoat.git#c5cb68a7084e4ae7dcc60e6a98768720a81841e8
+    image: webvuln-runner/nodegoat:c5cb68a
+    labels: *wvr-labels
+    environment:
+      NODE_ENV: ""
+      MONGODB_URI: mongodb://mongo:27017/nodegoat
+    command: sh -c "until nc -z -w 2 mongo 27017 && node artifacts/db-reset.js && npm start; do sleep 2; done"
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-4000}:4000"
+    depends_on: [mongo]
+
+  mongo:
+    image: mongo:4.4
+    labels: *wvr-labels
+    user: mongodb

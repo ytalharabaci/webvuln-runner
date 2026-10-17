@@ -1,23 +1,10 @@
-#!/bin/bash
-set -e
-
-# The installation file supports redhat-based systems
-
-# Run as Root!
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root"
-  exit
-fi
-
-dnf -y install newt wget
-dnf -y install docker-ce
-systemctl start docker.service
-systemctl enable docker.service
-
-cd /bin/
-wget -O indexApp.lst https://raw.githubusercontent.com/yusufarbc/webvuln-runner/main/src/indexApp.lst
-wget -O WebVuln-Runner https://raw.githubusercontent.com/yusufarbc/webvuln-runner/main/src/webvuln-runner
-chmod +x /bin/WebVuln-Runner
-
-echo "all done!"
-echo "You can run the program with 'WebVuln-Runner' command"
+#!/usr/bin/env bash
+# Kept so that installation links from WebVuln-Runner 1.x keep working.
+# Downloads and runs the universal installer of the same release with the distro family forced.
+set -euo pipefail
+WVR_RELEASE="${WVR_RELEASE:-v2.0.0}"
+url="https://raw.githubusercontent.com/yusufarbc/webvuln-runner/$WVR_RELEASE/installers/install.sh"
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
+{ curl -fsSL -o "$tmp" "$url" 2>/dev/null || wget -qO "$tmp" "$url"; } || { echo "error: download failed: $url" >&2; exit 1; }
+WVR_DISTRO=redhat WVR_RELEASE="$WVR_RELEASE" bash "$tmp" "$@"

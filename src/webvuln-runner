@@ -1,83 +1,184 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# WebVuln-Runner - start deliberately vulnerable labs in Docker from a TUI or the command line.
+set -uo pipefail
 
-# Run as Root!
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root"
-  exit
-fi
+WVR_ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+WVR_HOME="${WVR_HOME:-$WVR_ROOT}"
 
-# Go to work directory
-cd /bin
+# shellcheck source=lib/common.sh
+source "$WVR_ROOT/lib/common.sh"
+# shellcheck source=lib/catalog.sh
+source "$WVR_ROOT/lib/catalog.sh"
+# shellcheck source=lib/docker.sh
+source "$WVR_ROOT/lib/docker.sh"
+# shellcheck source=lib/ui.sh
+source "$WVR_ROOT/lib/ui.sh"
 
-# Get Images
-j=0
-input_file="/bin/indexApp.lst"
-input_data=$(cat $input_file | tr \\11 \\7) # replace tabs with alarm bell
-while IFS=$'\a' read DEFAULT_PORT REPOSITORY DESCRIPTON
-do
-  images[j]=$REPOSITORY
-  images[j+1]=$DESCRIPTON
-  j=`expr $j + 2`
-done <<< "$input_data"
-unset 'images[0]'
-unset 'images[1]'
+wvr_usage() {
+  cat <<EOF
+WebVuln-Runner $WVR_VERSION - deliberately vulnerable labs in Docker
 
+Usage:
+  webvuln-runner                       interactive menu
+  webvuln-runner catalog               list labs that can be started
+  webvuln-runner list                  list your labs and their state
+  webvuln-runner up <lab> [options]    create and start a lab
+      --name NAME     instance name (default: wvr-<lab>)
+      --port PORT     host port for the lab's main port (default: first free one)
+      --bind ADDR     address to publish on (default: 127.0.0.1)
+      --no-wait       do not wait for the app to answer
+  webvuln-runner start|stop|status <name>
+  webvuln-runner logs <name> [--tail N]
+  webvuln-runner rm <name> [--volumes]
+  webvuln-runner validate [catalog.json]
+  webvuln-runner uninstall
+  webvuln-runner version
 
-# Start Menu
-while [ 1 ]
-var=$(docker ps -a --format "{{.ID}} {{.Names}}")
-unset dockers
-i=0
-for container in $var
-do
-dockers[i]=$container
-i=`expr $i + 1  `
-done
+Labs are published on 127.0.0.1 unless you pass --bind or set WVR_BIND.
+Only containers created by WebVuln-Runner are listed or touched.
 
-do
-CHOICE=$(whiptail --menu "Choose a container to start" 18 100 10 "${dockers[@]}" \
-"add" "add a new container" "remove" "remove an exist container" 3>&1 1>&2 2>&3)
+Exit codes: 0 ok, 1 error, 2 usage error, 3 lab started but not ready in time.
+EOF
+}
 
-if [ -z "$CHOICE" ]
-then
-  exit
-else
-  # Add Container
-  if [ $CHOICE = "add" ]
-  then
-    RUN=$(whiptail --menu "Select a container to add" 18 100 10 "${images[@]}" 3>&1 1>&2 2>&3)
-    if [ ! -z "$RUN" ]
-    then
-      if (whiptail --yesno "Add Container?" 10 50) then
-        NAME=$(whiptail --inputbox "Please enter a name for the container" 10 50 3>&1 1>&2 2>&3)
-        docker container run -d --name $NAME -p 80:$(cat indexApp.lst | grep -h $RUN | cut -f1) $RUN
-        docker container stop $RUN
-        whiptail --msgbox "$REMOVE container is created" 10 50
-      fi
-    fi
-  # Remove Container
-  elif [ $CHOICE = "remove" ]
-  then
-    REMOVE=$(whiptail --menu "Select a container to delete" 18 70 10 "${dockers[@]}" 3>&1 1>&2 2>&3)
-    if [ ! -z "$REMOVE" ]
-    then
-      if (whiptail --yesno --defaultno "Remove Container?" 10 50) then
-	docker container stop $REMOVE
-	docker container rm $REMOVE
-        whiptail --msgbox "$REMOVE container is removed" 10 50
-      fi
-    fi
-  # Start Container
-  elif (whiptail --yesno "Start Container?" 10 50) then
-    docker container start $CHOICE
-    while [ 1 ]
-    do
-    whiptail --title "Running container $CHOICE" --msgbox "Container is running at localhost:80" 10 50
-    if (whiptail --yesno --defaultno "Stop Container?" 10 50) then
-      docker container stop $CHOICE
-      break
-    fi
-    done
+wvr_usage_error() {
+  wvr_err "$1"
+  wvr_err "run 'webvuln-runner help' for usage"
+  return 2
+}
+
+wvr_cmd_catalog() {
+  local id name cat type
+  printf '%-18s %-10s %-8s %s\n' "LAB" "CATEGORY" "TYPE" "NAME"
+  while IFS=$'\t' read -r id name cat type _; do
+    printf '%-18s %-10s %-8s %s\n' "$id" "$cat" "$type" "$name"
+  done < <(wvr_catalog_list)
+}
+
+wvr_cmd_list() {
+  local rows name lab state url
+  rows="$(wvr_instances)"
+  if [[ -z "$rows" ]]; then
+    wvr_info "No labs yet. Start one with: webvuln-runner up <lab>   (see 'webvuln-runner catalog')"
+    return 0
   fi
+  printf '%-24s %-18s %-12s %s\n' "NAME" "LAB" "STATE" "URL"
+  while IFS=$'\t' read -r name lab state url; do
+    printf '%-24s %-18s %-12s %s\n' "$name" "$lab" "$state" "$url"
+  done <<<"$rows"
+}
+
+wvr_cmd_up() {
+  local id="" name="" port="" bind="$WVR_BIND" wait=1
+  while (( $# )); do
+    case "$1" in
+      --name)    [[ $# -ge 2 ]] || { wvr_usage_error "--name needs a value"; return; }; name="$2"; shift 2 ;;
+      --port)    [[ $# -ge 2 ]] || { wvr_usage_error "--port needs a value"; return; }; port="$2"; shift 2 ;;
+      --bind)    [[ $# -ge 2 ]] || { wvr_usage_error "--bind needs a value"; return; }; bind="$2"; shift 2 ;;
+      --no-wait) wait=0; shift ;;
+      -*)        wvr_usage_error "unknown option: $1"; return ;;
+      *)         [[ -z "$id" ]] || { wvr_usage_error "unexpected argument: $1"; return; }; id="$1"; shift ;;
+    esac
+  done
+  [[ -n "$id" ]] || { wvr_usage_error "missing lab id"; return; }
+  wvr_catalog_has "$id" || { wvr_err "unknown lab: $id (see 'webvuln-runner catalog')"; return 1; }
+  [[ -n "$name" ]] || name="$(wvr_default_name "$id")"
+
+  wvr_up "$id" "$name" "$bind" "$port" || return 1
+  (( wait )) || return 0
+  wvr_info "Waiting for '$name' to answer (up to $(wvr_health_timeout "$name")s)..."
+  if wvr_health_wait "$name"; then
+    wvr_info "'$name' is ready: $(wvr_instance_label "$name" "$WVR_LABEL_URL")"
+  else
+    wvr_warn "'$name' is running but not answering yet; check 'webvuln-runner logs $name'"
+    return 3
+  fi
+}
+
+wvr_cmd_logs() {
+  local name="" lines=200
+  while (( $# )); do
+    case "$1" in
+      --tail) [[ $# -ge 2 && "$2" =~ ^[0-9]+$ ]] || { wvr_usage_error "--tail needs a number"; return; }; lines="$2"; shift 2 ;;
+      -*)     wvr_usage_error "unknown option: $1"; return ;;
+      *)      name="$1"; shift ;;
+    esac
+  done
+  [[ -n "$name" ]] || { wvr_usage_error "missing lab name"; return; }
+  wvr_logs "$name" "$lines"
+}
+
+wvr_cmd_rm() {
+  local name="" vol=""
+  while (( $# )); do
+    case "$1" in
+      --volumes) vol="--volumes"; shift ;;
+      -*)        wvr_usage_error "unknown option: $1"; return ;;
+      *)         name="$1"; shift ;;
+    esac
+  done
+  [[ -n "$name" ]] || { wvr_usage_error "missing lab name"; return; }
+  wvr_rm "$name" "$vol" && wvr_info "removed $name"
+}
+
+wvr_cmd_uninstall() {
+  if [[ -x "$WVR_ROOT/uninstall.sh" ]]; then
+    exec "$WVR_ROOT/uninstall.sh"
+  fi
+  wvr_err "this copy was not installed by an installer script; nothing to uninstall"
+  return 1
+}
+
+main() {
+  local cmd="${1:-}"
+  (( $# )) && shift
+
+  case "$cmd" in
+    help|-h|--help)       wvr_usage; return 0 ;;
+    version|-V|--version) wvr_info "webvuln-runner $WVR_VERSION"; return 0 ;;
+    uninstall)            wvr_cmd_uninstall; return ;;
+  esac
+
+  wvr_check_deps jq || return 1
+  wvr_catalog_init || return 1
+
+  case "$cmd" in
+    validate)
+      local file="${1:-$WVR_CATALOG}"
+      wvr_catalog_validate "$file" || return 1
+      wvr_info "catalog OK: $(jq '.labs | length' "$file") labs"
+      return 0 ;;
+    catalog)
+      wvr_cmd_catalog
+      return ;;
+  esac
+
+  wvr_check_deps docker curl || return 1
+  wvr_check_docker || return 1
+  if ! wvr_catalog_validate; then
+    wvr_err "the catalog ($WVR_CATALOG) is invalid; fix the problems above"
+    return 1
+  fi
+
+  case "$cmd" in
+    "")
+      wvr_check_deps whiptail || return 1
+      wvr_tui_main ;;
+    list)   wvr_cmd_list ;;
+    up)     wvr_cmd_up "$@" ;;
+    start|stop|status)
+      [[ $# -eq 1 ]] || { wvr_usage_error "usage: webvuln-runner $cmd <name>"; return; }
+      "wvr_$cmd" "$1" || return 1
+      case "$cmd" in
+        start) wvr_info "started $1" ;;
+        stop)  wvr_info "stopped $1" ;;
+      esac ;;
+    logs)   wvr_cmd_logs "$@" ;;
+    rm)     wvr_cmd_rm "$@" ;;
+    *)      wvr_usage_error "unknown command: $cmd" ;;
+  esac
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
 fi
-done

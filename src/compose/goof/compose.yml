@@ -1,0 +1,32 @@
+# Snyk Goof - adapted from https://github.com/snyk-labs/nodejs-goof/blob/main/docker-compose.yml
+# (Apache-2.0). Changes: published snyklabs/goof image instead of a local build, container_name
+# removed, WebVuln-Runner labels, only the app port published (on ${WVR_BIND}).
+# Service names are kept: the app connects to "goof-mongo" by name.
+
+x-wvr-labels: &wvr-labels
+  io.webvuln-runner.managed: "true"
+  io.webvuln-runner.lab: ${WVR_LAB:-goof}
+  io.webvuln-runner.instance: ${WVR_INSTANCE:-}
+  io.webvuln-runner.url: ${WVR_URL:-}
+  io.webvuln-runner.health: ${WVR_HEALTH:-}
+
+services:
+  goof:
+    image: snyklabs/goof:latest
+    labels: *wvr-labels
+    environment:
+      DOCKER: "1"
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-3001}:3001"
+    depends_on: [goof-mongo, good-mysql]
+
+  goof-mongo:
+    image: mongo:3
+    labels: *wvr-labels
+
+  good-mysql:
+    image: mysql:5
+    labels: *wvr-labels
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: acme

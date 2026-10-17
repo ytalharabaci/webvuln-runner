@@ -1,0 +1,23 @@
+# Minimal two-service lab used by tests/integration.sh.
+# Real labs under src/compose/ follow the same conventions:
+#   - every service carries the x-wvr-labels block
+#   - every published port uses ${WVR_BIND} and ${WVR_PORT_<NAME>}
+
+x-wvr-labels: &wvr-labels
+  io.webvuln-runner.managed: "true"
+  io.webvuln-runner.lab: ${WVR_LAB:-test-compose}
+  io.webvuln-runner.instance: ${WVR_INSTANCE:-}
+  io.webvuln-runner.url: ${WVR_URL:-}
+  io.webvuln-runner.health: ${WVR_HEALTH:-}
+
+services:
+  web:
+    image: nginx:1.27-alpine
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-18090}:80"
+    labels: *wvr-labels
+    depends_on: [backend]
+
+  backend:
+    image: nginx:1.27-alpine
+    labels: *wvr-labels

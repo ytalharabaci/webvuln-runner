@@ -1,0 +1,380 @@
+# shellcheck shell=bash
+# Lab lifecycle on top of the docker CLI.
+# Only containers labelled ${WVR_LABEL_MANAGED}=true are ever listed, started, stopped or removed.
+
+wvr_ps_managed() {
+  docker ps -a --filter "label=${WVR_LABEL_MANAGED}=true" "$@"
+}
+
+# One line per managed container: id, instance, lab, state, url, compose project
+wvr_containers() {
+  wvr_ps_managed "$@" --format "{{.ID}}\t{{.Label \"$WVR_LABEL_INSTANCE\"}}\t{{.Label \"$WVR_LABEL_LAB\"}}\t{{.State}}\t{{.Label \"$WVR_LABEL_URL\"}}\t{{.Label \"com.docker.compose.project\"}}"
+}
+
+# One line per instance: name, lab, state (running | stopped | partial n/m), url
+wvr_instances() {
+  wvr_containers | awk -F'\t' '
+    $2 == "" { next }
+    {
+      k = $2
+      if (!(k in lab)) { order[++n] = k; lab[k] = $3 }
+      total[k]++
+      if ($4 == "running") run[k]++
+      if ($5 != "" && url[k] == "") url[k] = $5
+    }
+    END {
+      for (i = 1; i <= n; i++) {
+        k = order[i]; r = run[k] + 0
+        s = (r == total[k]) ? "running" : (r == 0 ? "stopped" : "partial " r "/" total[k])
+        printf "%s\t%s\t%s\t%s\n", k, lab[k], s, url[k]
+      }
+    }' | sort
+}
+
+wvr_instance_ids() {
+  wvr_ps_managed -q --filter "label=${WVR_LABEL_INSTANCE}=$1"
+}
+
+wvr_instance_exists() {
+  wvr_valid_name "${1:-}" && [[ -n "$(wvr_instance_ids "$1")" ]]
+}
+
+# Prints the compose project of an instance, empty for single-container labs.
+wvr_instance_project() {
+  wvr_containers --filter "label=${WVR_LABEL_INSTANCE}=$1" | cut -f6 | head -n1
+}
+
+wvr_instance_label() {
+  local id
+  for id in $(wvr_instance_ids "$1"); do
+    docker inspect --format "{{index .Config.Labels \"$2\"}}" "$id"
+  done | grep -v '^$' | head -n1
+}
+
+wvr_require_instance() {
+  if ! wvr_instance_exists "${1:-}"; then
+    wvr_err "no WebVuln-Runner lab named '${1:-}' (only labs created by this tool can be managed)"
+    return 1
+  fi
+}
+
+# A name is taken if any container (managed or not) or any Compose project already uses it.
+wvr_name_taken() {
+  docker ps -a --format '{{.Names}}' | grep -Fxq -- "$1" ||
+    [[ -n "$(docker ps -aq --filter "label=com.docker.compose.project=$1")" ]]
+}
+
+wvr_default_name() {
+  local base="wvr-$1" name n=2
+  name="$base"
+  while wvr_name_taken "$name"; do
+    name="$base-$n"
+    n=$((n + 1))
+  done
+  printf '%s\n' "$name"
+}
+
+# Host ports already claimed by Docker: published ports of running containers,
+# plus the bindings of stopped managed labs (they would collide when started again).
+wvr_used_ports() {
+  local running managed
+  running="$(docker ps -q)"
+  managed="$(wvr_ps_managed -q)"
+  {
+    # shellcheck disable=SC2086 # word splitting of container ids is intended
+    [[ -n "$running" ]] && docker inspect --format \
+      '{{range $p, $b := .NetworkSettings.Ports}}{{range $b}}{{.HostPort}}{{"\n"}}{{end}}{{end}}' $running
+    # shellcheck disable=SC2086
+    [[ -n "$managed" ]] && docker inspect --format \
+      '{{range $p, $b := .HostConfig.PortBindings}}{{range $b}}{{.HostPort}}{{"\n"}}{{end}}{{end}}' $managed
+  } 2>/dev/null | grep -E '^[0-9]+$' | sort -un
+}
+
+# True when something outside Docker is already listening on the port.
+wvr_port_listening() {
+  local out
+  if wvr_have ss && out="$(ss -Hltn "sport = :$1" 2>/dev/null)"; then
+    [[ -n "$out" ]]
+    return
+  fi
+  (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null
+}
+
+# wvr_pick_port <start> <space separated ports to avoid>
+wvr_pick_port() {
+  local p="$1" avoid=" $2 " limit=$(( $1 + 200 ))
+  (( limit > 65535 )) && limit=65535
+  while (( p <= limit )); do
+    if [[ "$avoid" != *" $p "* ]] && ! wvr_port_listening "$p"; then
+      printf '%s\n' "$p"
+      return 0
+    fi
+    p=$((p + 1))
+  done
+  wvr_err "no free host port found near $1"
+  return 1
+}
+
+# wvr_plan_ports <lab id> [host port for the first port]
+# Prints name, container port, host port, scheme, path for every port of the lab.
+wvr_plan_ports() {
+  local id="$1" want="${2:-}" used taken="" first=1 name cport host scheme path
+  used="$(wvr_used_ports | tr '\n' ' ')"
+  while IFS=$'\t' read -r name cport host scheme path; do
+    if (( first )) && [[ -n "$want" ]]; then
+      if [[ " $used " == *" $want "* ]] || wvr_port_listening "$want"; then
+        wvr_err "host port $want is already in use"
+        return 1
+      fi
+      host="$want"
+    else
+      host="$(wvr_pick_port "$host" "$used $taken")" || return 1
+    fi
+    first=0
+    taken+=" $host"
+    printf '%s\t%s\t%s\t%s\t%s\n' "$name" "$cport" "$host" "$scheme" "$path"
+  done < <(wvr_catalog_ports "$id")
+}
+
+# Where a browser on this machine reaches a lab published on <bind>.
+wvr_display_host() {
+  if [[ "$1" == "0.0.0.0" ]]; then printf '127.0.0.1\n'; else printf '%s\n' "$1"; fi
+}
+
+# wvr_port_url <bind> <host port> <scheme> <path>
+wvr_port_url() {
+  local h
+  h="$(wvr_display_host "$1")"
+  case "$3" in
+    http|https) printf '%s://%s:%s%s\n' "$3" "$h" "$2" "$4" ;;
+    *)          printf '%s://%s:%s\n' "$3" "$h" "$2" ;;
+  esac
+}
+
+# wvr_up <lab id> <instance name> <bind address> [host port]
+wvr_up() {
+  local id="$1" name="$2" bind="$3" want="${4:-}"
+  local type plan first url health_type health_path health pname host scheme path
+
+  wvr_catalog_has "$id" || { wvr_err "unknown lab: $id (see 'webvuln-runner catalog')"; return 1; }
+  wvr_valid_name "$name" || { wvr_err "invalid name '$name': use lowercase letters, digits, '-' or '_' (max 63)"; return 1; }
+  wvr_valid_bind "$bind" || { wvr_err "invalid bind address: $bind"; return 1; }
+  if [[ -n "$want" ]] && ! wvr_valid_port "$want"; then wvr_err "invalid port: $want"; return 1; fi
+  if wvr_name_taken "$name"; then wvr_err "a container or Compose project named '$name' already exists"; return 1; fi
+
+  type="$(wvr_catalog_get "$id" .type)"
+  if [[ "$type" == "compose" ]] && ! wvr_have_compose; then
+    wvr_err "lab '$id' needs the Docker Compose v2 plugin ('docker compose')"
+    return 1
+  fi
+
+  plan="$(wvr_plan_ports "$id" "$want")" || return 1
+  first="$(head -n1 <<<"$plan")"
+  url="$(wvr_port_url "$bind" "$(cut -f3 <<<"$first")" "$(cut -f4 <<<"$first")" "$(cut -f5 <<<"$first")")"
+  IFS=$'\t' read -r health_type health_path < <(wvr_catalog_health "$id")
+  case "$health_type" in
+    http|https) health="$health_type $health_type://$(wvr_display_host "$bind"):$(cut -f3 <<<"$first")$health_path" ;;
+    *)          health="tcp $(wvr_display_host "$bind"):$(cut -f3 <<<"$first")" ;;
+  esac
+
+  if [[ "$type" == "compose" ]]; then
+    wvr_up_compose "$id" "$name" "$bind" "$plan" "$url" "$health"
+  else
+    wvr_up_image "$id" "$name" "$bind" "$plan" "$url" "$health"
+  fi || return 1
+
+  wvr_info "Lab '$name' ($id) started."
+  while IFS=$'\t' read -r pname _ host scheme path; do
+    wvr_info "  $pname: $(wvr_port_url "$bind" "$host" "$scheme" "$path")"
+  done <<<"$plan"
+  if [[ "$bind" != 127.* ]]; then
+    wvr_warn "'$name' is published on $bind and reachable from other machines. Only do this on an isolated network."
+  fi
+}
+
+wvr_up_image() {
+  local id="$1" name="$2" bind="$3" plan="$4" url="$5" health="$6"
+  local image workdir cid cport host kv
+  local -a args run_cmd
+
+  image="$(wvr_catalog_get "$id" .image)"
+  args=(
+    --name "$name"
+    --label "${WVR_LABEL_MANAGED}=true"
+    --label "${WVR_LABEL_LAB}=$id"
+    --label "${WVR_LABEL_INSTANCE}=$name"
+    --label "${WVR_LABEL_URL}=$url"
+    --label "${WVR_LABEL_HEALTH}=$health"
+  )
+  while IFS=$'\t' read -r _ cport host _; do
+    args+=(-p "$bind:$host:$cport")
+  done <<<"$plan"
+  while IFS= read -r kv; do
+    [[ -n "$kv" ]] && args+=(-e "$kv")
+  done < <(wvr_catalog_get "$id" '(.env // {}) | to_entries[] | "\(.key)=\(.value)"')
+  workdir="$(wvr_catalog_get "$id" '.workdir // empty')"
+  [[ -n "$workdir" ]] && args+=(-w "$workdir")
+  mapfile -t run_cmd < <(wvr_catalog_get "$id" '(.command // [])[]')
+
+  if ! docker image inspect "$image" >/dev/null 2>&1; then
+    wvr_info "Pulling $image ..."
+    docker pull "$image" || { wvr_err "could not pull $image"; return 1; }
+  fi
+  cid="$(docker create "${args[@]}" "$image" "${run_cmd[@]}")" || { wvr_err "could not create container '$name'"; return 1; }
+  if ! docker start "$cid" >/dev/null; then
+    wvr_err "container '$name' was created but failed to start; removing it"
+    docker rm -f "$cid" >/dev/null 2>&1
+    return 1
+  fi
+}
+
+wvr_up_compose() {
+  local id="$1" name="$2" bind="$3" plan="$4" url="$5" health="$6"
+  local file pname host var
+  local -a envs
+
+  file="$WVR_HOME/$(wvr_catalog_get "$id" .compose)"
+  envs=(
+    "WVR_INSTANCE=$name" "WVR_LAB=$id" "WVR_BIND=$bind"
+    "WVR_URL=$url" "WVR_HEALTH=$health"
+  )
+  while IFS=$'\t' read -r pname _ host _; do
+    var="WVR_PORT_$(tr '[:lower:]' '[:upper:]' <<<"$pname")"
+    envs+=("$var=$host")
+  done <<<"$plan"
+
+  if ! env "${envs[@]}" docker compose -p "$name" -f "$file" up -d; then
+    wvr_err "docker compose failed for '$name'; cleaning up"
+    env "${envs[@]}" docker compose -p "$name" -f "$file" down --remove-orphans >/dev/null 2>&1
+    return 1
+  fi
+}
+
+wvr_start() {
+  local project ids
+  wvr_require_instance "$1" || return 1
+  project="$(wvr_instance_project "$1")"
+  if [[ -n "$project" ]]; then
+    docker compose -p "$project" start
+  else
+    ids="$(wvr_instance_ids "$1")"
+    # shellcheck disable=SC2086
+    docker start $ids >/dev/null
+  fi
+}
+
+wvr_stop() {
+  local project ids
+  wvr_require_instance "$1" || return 1
+  project="$(wvr_instance_project "$1")"
+  if [[ -n "$project" ]]; then
+    docker compose -p "$project" stop
+  else
+    ids="$(wvr_instance_ids "$1")"
+    # shellcheck disable=SC2086
+    docker stop $ids >/dev/null
+  fi
+}
+
+# wvr_rm <name> [--volumes]
+wvr_rm() {
+  local name="$1" volumes="${2:-}" project ids
+  wvr_require_instance "$name" || return 1
+  project="$(wvr_instance_project "$name")"
+  if [[ -n "$project" ]]; then
+    if [[ "$volumes" == "--volumes" ]]; then
+      docker compose -p "$project" down --remove-orphans --volumes
+    else
+      docker compose -p "$project" down --remove-orphans
+    fi
+  else
+    ids="$(wvr_instance_ids "$name")"
+    # shellcheck disable=SC2086
+    if [[ "$volumes" == "--volumes" ]]; then docker rm -f -v $ids >/dev/null; else docker rm -f $ids >/dev/null; fi
+  fi
+}
+
+# wvr_logs <name> [lines]
+wvr_logs() {
+  local name="$1" lines="${2:-200}" project id
+  wvr_require_instance "$name" || return 1
+  project="$(wvr_instance_project "$name")"
+  if [[ -n "$project" ]]; then
+    docker compose -p "$project" logs --no-color --tail "$lines" 2>&1
+  else
+    for id in $(wvr_instance_ids "$name"); do
+      docker logs --tail "$lines" "$id" 2>&1
+    done
+  fi
+}
+
+# wvr_probe "<type> <target>" — one readiness check.
+# http/https: any HTTP answer below 500 counts as ready. tcp: the port accepts connections.
+# Note: Docker's userland proxy accepts TCP connections on published loopback ports even
+# before the app listens, so "tcp" is only a weak signal; prefer http checks where possible.
+wvr_probe() {
+  local type="${1%% *}" target="${1#* }" code
+  case "$type" in
+    http|https)
+      code="$(curl -sk -o /dev/null --max-time 3 -w '%{http_code}' "$target" 2>/dev/null)"
+      [[ "$code" =~ ^[1-4][0-9][0-9]$ ]]
+      ;;
+    tcp)
+      (exec 3<>"/dev/tcp/${target%:*}/${target##*:}") 2>/dev/null
+      ;;
+    *) return 1 ;;
+  esac
+}
+
+wvr_health_timeout() {
+  local lab t
+  lab="$(wvr_instance_label "$1" "$WVR_LABEL_LAB")"
+  t="$(wvr_catalog_get "$lab" '.health_timeout // empty' 2>/dev/null)"
+  printf '%s\n' "${t:-$WVR_HEALTH_TIMEOUT}"
+}
+
+# wvr_health_wait <name> [timeout] [--progress]
+# With --progress, prints a percentage per second (for whiptail --gauge).
+wvr_health_wait() {
+  local name="$1" timeout="${2:-}" progress="${3:-}" health elapsed=0
+  health="$(wvr_instance_label "$name" "$WVR_LABEL_HEALTH")"
+  [[ -n "$health" ]] || return 1
+  [[ -n "$timeout" ]] || timeout="$(wvr_health_timeout "$name")"
+  while (( elapsed < timeout )); do
+    if wvr_probe "$health"; then
+      [[ -n "$progress" ]] && echo 100
+      return 0
+    fi
+    [[ -n "$progress" ]] && echo $(( elapsed * 100 / timeout ))
+    sleep 2
+    elapsed=$((elapsed + 2))
+  done
+  return 1
+}
+
+wvr_status() {
+  local name="$1" lab health state url line
+  wvr_require_instance "$name" || return 1
+  lab="$(wvr_instance_label "$name" "$WVR_LABEL_LAB")"
+  health="$(wvr_instance_label "$name" "$WVR_LABEL_HEALTH")"
+  line="$(wvr_instances | awk -F'\t' -v n="$name" '$1 == n')"
+  state="$(cut -f3 <<<"$line")"
+  url="$(cut -f4 <<<"$line")"
+  wvr_info "Name:      $name"
+  wvr_info "Lab:       $lab ($(wvr_catalog_get "$lab" .name 2>/dev/null))"
+  wvr_info "Container: $state"
+  if [[ "$state" == "stopped" ]]; then
+    wvr_info "App:       not running"
+  elif wvr_probe "$health"; then
+    wvr_info "App:       ready"
+  else
+    wvr_info "App:       not responding yet (${health#* })"
+  fi
+  wvr_info "URL:       $url"
+  wvr_info "Ports:"
+  local id
+  for id in $(wvr_instance_ids "$name"); do
+    docker inspect --format \
+      '{{$n := .Name}}{{range $p, $b := .NetworkSettings.Ports}}{{range $b}}  {{$n}} {{.HostIp}}:{{.HostPort}} -> {{$p}}{{"\n"}}{{end}}{{end}}' "$id"
+  done | sed 's#  /#  #' | grep -v '^$'
+}

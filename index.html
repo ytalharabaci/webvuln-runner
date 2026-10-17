@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebVuln-Runner - Vulnerable App Manager</title>
+    <title>WebVuln-Runner - Vulnerable Lab Manager</title>
+    <meta name="description" content="Start deliberately vulnerable web apps, APIs and benchmark targets in Docker, published on 127.0.0.1 by default.">
     <link rel="icon" type="image/x-icon" href="assets/logo.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -32,6 +33,16 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
+        .app-card code.cmd {
+            display: block;
+            background: #212529;
+            color: #f8f9fa;
+            padding: .4rem .6rem;
+            border-radius: .3rem;
+            font-size: .8rem;
+            word-break: break-all;
+        }
+
         .navbar-brand img {
             height: 32px;
             margin-right: 10px;
@@ -39,8 +50,15 @@
 
         .hero-logo {
             max-width: 350px;
+            width: 100%;
             margin-bottom: 2rem;
             filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .filter-btn.active {
+            color: #fff;
+            background: #2a5298;
+            border-color: #2a5298;
         }
     </style>
 </head>
@@ -59,7 +77,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#applications">Applications</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#applications">Labs</a></li>
                     <li class="nav-item"><a class="nav-link" href="#installation">Installation</a></li>
                     <li class="nav-item"><a class="nav-link" href="https://github.com/yusufarbc/webvuln-runner"><i
                                 class="fab fa-github"></i> GitHub</a></li>
@@ -73,10 +91,10 @@
         <div class="container">
             <img src="assets/logo.png" alt="WebVuln-Runner Logo" class="hero-logo">
             <h1 class="display-4 fw-bold mb-4">WebVuln-Runner</h1>
-            <p class="lead mb-4 text-secondary">Docker-based launcher for 15+ vulnerable web app labs (Juice Shop, DVWA,
-                WebGoat, more) with instant start.</p>
+            <p class="lead mb-4 text-secondary">Start <span id="lab-count">many</span> deliberately vulnerable web apps,
+                APIs and benchmark targets in Docker &mdash; from a terminal menu or one command.</p>
             <a href="#installation" class="btn btn-primary btn-lg px-5">Get Started</a>
-            <a href="https://github.com/yusufarbc/webvuln-runner" class="btn btn-outline-primary btn-lg px-5 ms-2">View
+            <a href="https://github.com/yusufarbc/webvuln-runner" class="btn btn-outline-primary btn-lg px-5 ms-2 mt-2 mt-sm-0">View
                 on GitHub</a>
         </div>
     </header>
@@ -89,242 +107,81 @@
                 <p class="text-muted">Why use WebVuln-Runner?</p>
             </div>
             <div class="row g-4">
-                <div class="col-md-4 text-center">
-                    <div class="feature-icon"><i class="fas fa-terminal"></i></div>
-                    <h4>TUI Interface</h4>
-                    <p>Easy to use Text User Interface (Whiptail) for managing containers directly from your terminal.
-                    </p>
+                <div class="col-md-6 col-lg-3 text-center">
+                    <div class="feature-icon"><i class="fas fa-lock"></i></div>
+                    <h4>Safe Defaults</h4>
+                    <p>Labs listen on 127.0.0.1 only. Exposing a lab to your network is an explicit, warned opt-in.</p>
                 </div>
-                <div class="col-md-4 text-center">
+                <div class="col-md-6 col-lg-3 text-center">
                     <div class="feature-icon"><i class="fab fa-docker"></i></div>
-                    <h4>Docker Powered</h4>
-                    <p>Leverages Docker to spin up isolated vulnerable environments instantly without messing up your
-                        host system.</p>
+                    <h4>Only Its Own Containers</h4>
+                    <p>Everything it creates is labelled; other containers on your host are never listed, stopped or
+                        removed.</p>
                 </div>
-                <div class="col-md-4 text-center">
-                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                    <h4>Security Training</h4>
-                    <p>Perfect for CTF preparation, security training, and learning about OWASP Top 10 vulnerabilities.
-                    </p>
+                <div class="col-md-6 col-lg-3 text-center">
+                    <div class="feature-icon"><i class="fas fa-heartbeat"></i></div>
+                    <h4>Ready Means Ready</h4>
+                    <p>Waits until the app actually answers. Several labs run side by side, each on its own port.</p>
+                </div>
+                <div class="col-md-6 col-lg-3 text-center">
+                    <div class="feature-icon"><i class="fas fa-terminal"></i></div>
+                    <h4>TUI and CLI</h4>
+                    <p>A whiptail menu for interactive use and a scriptable CLI. Compose labs like crAPI start as one
+                        unit.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Applications List -->
+    <!-- Labs, rendered from src/catalog.json -->
     <section id="applications" class="py-5 bg-light">
         <div class="container">
-            <div class="text-center mb-5">
-                <h2>Supported Applications</h2>
-                <p class="text-muted">One-click installation for these vulnerable environments</p>
+            <div class="text-center mb-4">
+                <h2>Supported Labs</h2>
+                <p class="text-muted">Generated from <a href="https://github.com/yusufarbc/webvuln-runner/blob/main/src/catalog.json">src/catalog.json</a>
+                    &mdash; the same catalog the tool uses.</p>
             </div>
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">OWASP Juice Shop</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">bkimminich/juice-shop</h6>
-                            <p class="card-text">The most modern and sophisticated insecure web application! Covers the
-                                entire OWASP Top 10.</p>
-                            <span class="badge bg-primary">Node.js</span>
-                            <span class="badge bg-danger">Top 10</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">DVWA</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">vulnerables/web-dvwa</h6>
-                            <p class="card-text">Damn Vulnerable Web Application. A PHP/MySQL web application that is
-                                damn vulnerable.</p>
-                            <span class="badge bg-primary">PHP</span>
-                            <span class="badge bg-warning text-dark">Classic</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">OWASP WebGoat</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">webgoat/webgoat</h6>
-                            <p class="card-text">A deliberately insecure application that allows interested developers
-                                just to test vulnerabilities.</p>
-                            <span class="badge bg-primary">Java</span>
-                            <span class="badge bg-info text-dark">Education</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">bWAPP</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">raesene/bwapp</h6>
-                            <p class="card-text">A buggy web application. Free and open source. It helps security
-                                enthusiasts, researchers and students.</p>
-                            <span class="badge bg-primary">PHP</span>
-                            <span class="badge bg-danger">100+ Vulns</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">OWASP Mutillidae II</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">citizenstig/nowasp</h6>
-                            <p class="card-text">A free, open source, deliberately vulnerable web-application providing
-                                a target for web-security enthusiast.</p>
-                            <span class="badge bg-primary">PHP</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">VulnLab</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">yavuzlar/vulnlab</h6>
-                            <p class="card-text">A web vulnerability lab project developed by Yavuzlar. Great for local
-                                practice.</p>
-                            <span class="badge bg-success">Local</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">XVWA</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">s4n7h0/xvwa</h6>
-                            <p class="card-text">Xtreme Vulnerable Web Application. A badly coded web application
-                                written in PHP/MySQL.</p>
-                            <span class="badge bg-primary">PHP</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">VAmPI</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">erev0s/vampi</h6>
-                            <p class="card-text">Vulnerable API. An API with vulnerabilities to learn about API security
-                                (OWASP API Top 10).</p>
-                            <span class="badge bg-warning text-dark">Python/Flask</span>
-                            <span class="badge bg-info text-dark">API</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">DVNA</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">appsecco/dvna</h6>
-                            <p class="card-text">Damn Vulnerable NodeJS Application. A simple NodeJS application to
-                                demonstrate vulnerabilities.</p>
-                            <span class="badge bg-primary">Node.js</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">DVGA</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">dolevf/dvga</h6>
-                            <p class="card-text">Damn Vulnerable GraphQL Application. Learn GraphQL security with this
-                                vulnerable app.</p>
-                            <span class="badge bg-warning text-dark">Python</span>
-                            <span class="badge bg-info text-dark">GraphQL</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">Hackazon</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">rapid7/hackazon</h6>
-                            <p class="card-text">A modern vulnerable e-commerce application. Rich with features and
-                                vulnerabilities.</p>
-                            <span class="badge bg-primary">PHP</span>
-                            <span class="badge bg-secondary">E-commerce</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">Security Shepherd</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">owasp/security-shepherd</h6>
-                            <p class="card-text">A web and mobile application security training platform by OWASP.</p>
-                            <span class="badge bg-primary">Java</span>
-                            <span class="badge bg-success">Training</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">OWASP Benchmark</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">owasp/benchmark</h6>
-                            <p class="card-text">A test suite designed to verify the speed and accuracy of vulnerability
-                                detection tools.</p>
-                            <span class="badge bg-primary">Java</span>
-                            <span class="badge bg-secondary">Tooling</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">DVWS</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">snoopysecurity/dvws</h6>
-                            <p class="card-text">Damn Vulnerable Web Services. Practice exploiting web services and
-                                APIs.</p>
-                            <span class="badge bg-primary">PHP</span>
-                            <span class="badge bg-info text-dark">API</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card app-card">
-                        <div class="card-body">
-                            <h5 class="card-title">DSVPWA</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">sgabe/dsvpwa</h6>
-                            <p class="card-text">Damn Simple Vulnerable Python Web Application. Simple and educational.
-                            </p>
-                            <span class="badge bg-warning text-dark">Python</span>
-                        </div>
-                    </div>
+            <div class="row g-2 mb-3 justify-content-center">
+                <div class="col-md-6">
+                    <input id="search" type="search" class="form-control" placeholder="Search by name, stack or description"
+                        aria-label="Search labs">
                 </div>
             </div>
+            <div id="filters" class="d-flex flex-wrap gap-2 justify-content-center mb-4" role="group"
+                aria-label="Filter by category"></div>
+            <div id="labs" class="row g-4"></div>
+            <p id="labs-status" class="text-center text-muted mt-4"></p>
         </div>
     </section>
 
     <!-- Installation -->
     <section id="installation" class="py-5">
         <div class="container">
-            <div class="row align-items-center">
+            <div class="row g-5">
                 <div class="col-lg-6">
-                    <h2>Installation & Usage</h2>
-                    <p class="lead">Get up and running in seconds on any Linux system with Docker installed.</p>
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> Note: You must run these commands as <strong>root</strong>.
+                    <h2>Installation</h2>
+                    <p class="lead">Debian / Ubuntu / Kali, Fedora / RHEL / Rocky / AlmaLinux and Arch Linux.</p>
+                    <p>The installer installs Docker and the other dependencies. It then downloads a tagged release,
+                        verifies its SHA-256 checksum and installs the <code>webvuln-runner</code> command.</p>
+                    <pre class="bg-dark text-white p-3 rounded"><code>curl -fsSLO https://raw.githubusercontent.com/yusufarbc/webvuln-runner/v2.0.0/installers/install.sh
+less install.sh        # read it first
+sudo bash install.sh</code></pre>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Docker access is equivalent to root. Run
+                        <code>sudo webvuln-runner</code>, or add your user to the <code>docker</code> group knowing what
+                        that grants.
                     </div>
-                    <h5>Debian / Ubuntu / Kali</h5>
-                    <pre class="bg-dark text-white p-3 rounded"><code>sudo su
-wget -O - https://raw.githubusercontent.com/yusufarbc/webvuln-runner/main/installers/debian/install.sh | bash;
-WebVuln-Runner</code></pre>
-
-                    <h5 class="mt-4">RedHat / Fedora</h5>
-                    <pre class="bg-dark text-white p-3 rounded"><code>sudo su
-wget -O - https://raw.githubusercontent.com/yusufarbc/webvuln-runner/main/installers/redhat/install.sh | bash;
-WebVuln-Runner</code></pre>
-
-                    <h5 class="mt-4">Arch Linux</h5>
-                    <pre class="bg-dark text-white p-3 rounded"><code>sudo su
-wget -O - https://raw.githubusercontent.com/yusufarbc/webvuln-runner/main/installers/arch/install.sh | bash;
-WebVuln-Runner</code></pre>
                 </div>
                 <div class="col-lg-6">
-                    <img src="https://user-images.githubusercontent.com/77548038/211136750-f430013b-c02e-4a3a-bcfc-859dedc10527.png"
-                        alt="WebVuln-Runner Interface" class="img-fluid rounded shadow-lg">
+                    <h2>Usage</h2>
+                    <pre class="bg-dark text-white p-3 rounded"><code>webvuln-runner                  # interactive menu
+webvuln-runner catalog          # labs you can start
+webvuln-runner up crapi         # create, start, wait until ready
+webvuln-runner list             # your labs, state and URL
+webvuln-runner logs wvr-crapi
+webvuln-runner rm wvr-crapi --volumes</code></pre>
+                    <p class="text-muted small">This page is a read-only catalog. A web page cannot safely control your
+                        Docker daemon, so labs are managed from the terminal.</p>
                 </div>
             </div>
         </div>
@@ -333,14 +190,101 @@ WebVuln-Runner</code></pre>
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">
         <div class="container text-center">
-            <p class="mb-0">&copy; 2025 WebVuln-Runner Project. Developed by <a href="https://github.com/yusufarbc"
+            <p class="mb-0">&copy; 2026 WebVuln-Runner Project. Developed by <a href="https://github.com/yusufarbc"
                     class="text-white text-decoration-none">yusufarbc</a>.</p>
-            <small class="text-muted">Disclaimer: These applications are intentionally vulnerable. Do not run them on
+            <small class="text-white-50">Disclaimer: These applications are intentionally vulnerable. Do not run them on
                 production servers or exposed networks.</small>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            const CATEGORY_LABELS = {
+                "web": "Web", "rest-api": "REST API", "graphql": "GraphQL", "grpc": "gRPC",
+                "ai-mcp": "AI / MCP", "benchmark": "Scanner benchmark", "training": "Guided training"
+            };
+            const labsEl = document.getElementById("labs");
+            const statusEl = document.getElementById("labs-status");
+            const searchEl = document.getElementById("search");
+            const filtersEl = document.getElementById("filters");
+            let labs = [];
+            let category = "all";
+
+            const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+                ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+            function ports(lab) {
+                const p = lab.ports.map((x) => x.host);
+                return p.length > 3 ? `${p[0]}, ${p[1]}-${p[p.length - 1]}` : p.join(", ");
+            }
+
+            function card(lab) {
+                const stack = (lab.stack || []).map((s) => `<span class="badge bg-secondary me-1">${esc(s)}</span>`).join("");
+                const compose = lab.type === "compose"
+                    ? '<span class="badge bg-warning text-dark me-1" title="Several containers, needs docker compose">Compose</span>' : "";
+                return `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card app-card">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h5 class="card-title mb-0"><a class="text-decoration-none" href="${esc(lab.source)}">${esc(lab.name)}</a></h5>
+                                <span class="badge bg-primary">${esc(CATEGORY_LABELS[lab.category] || lab.category)}</span>
+                            </div>
+                            <h6 class="card-subtitle mb-2 text-muted small">${esc(lab.image || lab.compose)}</h6>
+                            <p class="card-text">${esc(lab.description)}</p>
+                            <div class="mb-2">${compose}${stack}</div>
+                            <p class="small text-muted mb-2"><i class="fas fa-plug"></i> port ${esc(ports(lab))}
+                                ${lab.ram_mb ? `&middot; <i class="fas fa-memory"></i> ~${esc(lab.ram_mb)} MB` : ""}</p>
+                            <code class="cmd mt-auto">webvuln-runner up ${esc(lab.id)}</code>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            function render() {
+                const q = searchEl.value.trim().toLowerCase();
+                const shown = labs.filter((lab) =>
+                    (category === "all" || lab.category === category) &&
+                    (!q || [lab.id, lab.name, lab.description, ...(lab.stack || [])].join(" ").toLowerCase().includes(q)));
+                labsEl.innerHTML = shown.map(card).join("");
+                statusEl.textContent = shown.length ? `${shown.length} of ${labs.length} labs` : "No lab matches.";
+            }
+
+            function renderFilters() {
+                const cats = ["all", ...new Set(labs.map((l) => l.category))];
+                filtersEl.innerHTML = cats.map((c) => {
+                    const n = c === "all" ? labs.length : labs.filter((l) => l.category === c).length;
+                    const label = c === "all" ? "All" : (CATEGORY_LABELS[c] || c);
+                    return `<button type="button" class="btn btn-sm btn-outline-primary filter-btn${c === category ? " active" : ""}"
+                        data-cat="${esc(c)}" aria-pressed="${c === category}">${esc(label)} (${n})</button>`;
+                }).join("");
+            }
+
+            filtersEl.addEventListener("click", (e) => {
+                const btn = e.target.closest("button[data-cat]");
+                if (!btn) return;
+                category = btn.dataset.cat;
+                renderFilters();
+                render();
+            });
+            searchEl.addEventListener("input", render);
+
+            fetch("src/catalog.json")
+                .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+                .then((data) => {
+                    labs = data.labs;
+                    document.getElementById("lab-count").textContent = labs.length;
+                    renderFilters();
+                    render();
+                })
+                .catch(() => {
+                    statusEl.innerHTML = 'Could not load the catalog. When opening this file locally, serve it over HTTP ' +
+                        '(e.g. <code>python3 -m http.server</code>) or see the ' +
+                        '<a href="https://github.com/yusufarbc/webvuln-runner#supported-labs">list on GitHub</a>.';
+                });
+        })();
+    </script>
 </body>
 
 </html>

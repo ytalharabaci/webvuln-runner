@@ -1,0 +1,41 @@
+name: Image audit
+
+# Checks weekly that every image referenced by the catalog can still be pulled.
+# Runs on a schedule only, so an upstream image disappearing never blocks a pull request.
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check images
+        run: |
+          images="$(jq -r '.labs[] | select(.type == "image") | .image' src/catalog.json)"
+          for f in src/compose/*/compose.yml; do
+            [ -e "$f" ] || continue
+            # Services built from source have no registry image to check.
+            images+=$'\n'"$(docker compose -f "$f" config --format json | jq -r '.services[] | select(.build == null) | .image')"
+          done
+          missing=0
+          {
+            echo "| Image | Status |"
+            echo "|---|---|"
+          } >>"$GITHUB_STEP_SUMMARY"
+          while read -r img; do
+            [ -n "$img" ] || continue
+            if docker manifest inspect "$img" >/dev/null 2>&1; then
+              echo "| \`$img\` | ok |" >>"$GITHUB_STEP_SUMMARY"
+            else
+              echo "| \`$img\` | **not pullable** |" >>"$GITHUB_STEP_SUMMARY"
+              echo "::error::image not pullable: $img"
+              missing=1
+            fi
+          done < <(printf '%s\n' "$images" | sort -u)
+          exit "$missing"

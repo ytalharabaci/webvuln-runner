@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check
+        run: |
+          for f in src/webvuln-runner src/lib/*.sh installers/*.sh installers/*/*.sh scripts/*.sh tests/integration.sh tests/helpers/bin/docker; do
+            bash -n "$f"
+          done
+      - name: ShellCheck
+        run: shellcheck -x src/webvuln-runner src/lib/*.sh installers/*.sh installers/*/*.sh scripts/*.sh tests/integration.sh tests/helpers/bin/docker
+
+  catalog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate catalog
+        run: ./src/webvuln-runner validate
+      - name: Compose files parse
+        run: |
+          for f in src/compose/*/compose.yml; do
+            [ -e "$f" ] || continue
+            echo "== $f"
+            docker compose -f "$f" config --quiet
+          done
+      - name: README lab table is up to date
+        run: ./scripts/gen-readme-table.sh --check
+
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install bats
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq bats
+      - name: Unit tests
+        run: bats tests/unit
+
+  integration:
+    runs-on: ubuntu-latest
+    needs: [lint, unit]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Integration tests against Docker
+        run: bash tests/integration.sh
