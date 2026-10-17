@@ -1,0 +1,74 @@
+# OWASP Security Shepherd - https://github.com/OWASP/SecurityShepherd (GPL-3.0)
+# Upstream builds in two steps (mvn -Pdocker install, then docker compose build) and
+# publishes no database images. The inline Dockerfile below runs the same Maven build from
+# a pinned upstream commit and then produces the Tomcat, MariaDB and MongoDB images from
+# it, following docker/*/Dockerfile and .env of that commit. First start needs GitHub and
+# Maven Central access and takes several minutes.
+# Changes for WebVuln-Runner: container_name removed, labels added, only HTTPS published
+# on ${WVR_BIND} (the app redirects all HTTP to HTTPS), databases stay internal.
+
+x-wvr-labels: &wvr-labels
+  io.webvuln-runner.managed: "true"
+  io.webvuln-runner.lab: ${WVR_LAB:-security-shepherd}
+  io.webvuln-runner.instance: ${WVR_INSTANCE:-}
+  io.webvuln-runner.url: ${WVR_URL:-}
+  io.webvuln-runner.health: ${WVR_HEALTH:-}
+
+x-shepherd-build: &shepherd-build
+  context: https://github.com/OWASP/SecurityShepherd.git#cff3958abf7a18cfc84fe6bed9dd6698631b2cee
+  dockerfile_inline: |
+    FROM maven:3.9-eclipse-temurin-17 AS build
+    WORKDIR /src
+    COPY . .
+    RUN mvn -B -q -Pdocker clean install -DskipTests
+
+    FROM tomcat:9.0-jre17-temurin AS web
+    COPY --from=build /src/target/owaspSecurityShepherd.war /usr/local/tomcat/webapps/ROOT.war
+    COPY --from=build /src/target/docker/tomcat/shepherdKeystore.p12 /usr/local/tomcat/conf/
+    COPY --from=build /src/docker/tomcat/serverxml.patch /src/docker/tomcat/webxml.patch /usr/local/tomcat/conf/
+    RUN cd /usr/local/tomcat/conf \
+     && printf 'databaseConnectionURL=jdbc:mariadb://db:3306/\nDriverType=org.mariadb.jdbc.Driver\ndatabaseSchema=core\ndatabaseUsername=root\ndatabasePassword=CowSaysMoo\ndatabaseOptions=useUnicode=true&character_set_server=utf8mb4\n' > database.properties \
+     && printf 'connectionHost=mongo\nconnectionPort=27017\ndatabaseName=shepherdGames\nconnectTimeout=1000\nsocketTimeout=0\nserverSelectionTimeout=30000' > mongo.properties \
+     && sed -i 's/keystoreFile="conf\/TLS_KEYSTORE_FILE" keystorePass="TLS_KEYSTORE_PASS" keyAlias="ALIAS">/keystoreFile="conf\/shepherdKeystore.p12" keystorePass="CowSaysMoo" keyAlias="tomcat">/; s/redirectPort="HTTPS_PORT" \/>/redirectPort="8443" \/>/' serverxml.patch \
+     && apt-get -qq update && apt-get install -y -qq patch libargon2-1 >/dev/null && rm -rf /var/lib/apt/lists/* \
+     && rm -rf /usr/local/tomcat/webapps/ROOT \
+     && patch server.xml serverxml.patch && patch web.xml webxml.patch
+    EXPOSE 8443
+    CMD ["catalina.sh", "run"]
+
+    FROM mariadb:10.6.11 AS db
+    COPY --from=build /src/docker/mariadb/target/coreSchema.sql /src/docker/mariadb/target/moduleSchemas.sql /docker-entrypoint-initdb.d/
+    RUN sed -i "s/@'localhost'/@'%'/g" /docker-entrypoint-initdb.d/moduleSchemas.sql
+
+    FROM mongo:4.1.13 AS mongo
+    COPY --from=build /src/docker/mongo/target/moduleSchemas.js /docker-entrypoint-initdb.d/
+    RUN sed -i 's/\/\/REMOVE/ /g' /docker-entrypoint-initdb.d/moduleSchemas.js
+
+services:
+  web:
+    build: { <<: *shepherd-build, target: web }
+    image: webvuln-runner/security-shepherd-web:cff3958
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-8445}:8443"
+    depends_on: [db, mongo]
+
+  db:
+    build: { <<: *shepherd-build, target: db }
+    image: webvuln-runner/security-shepherd-db:cff3958
+    labels: *wvr-labels
+    environment:
+      MARIADB_ROOT_PASSWORD: CowSaysMoo
+    volumes:
+      - db-data:/var/lib/mysql
+
+  mongo:
+    build: { <<: *shepherd-build, target: mongo }
+    image: webvuln-runner/security-shepherd-mongo:cff3958
+    labels: *wvr-labels
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  db-data:
+  mongo-data:

@@ -1,0 +1,26 @@
+# DjanGoat - https://github.com/Contrast-Security-OSS/DjanGoat (MIT License)
+# Upstream ships no Dockerfile. This one follows its README (Python 2.7, SQLite, manage.py
+# migrate + seed) and builds from a pinned upstream commit on first start (needs GitHub access).
+
+x-wvr-labels: &wvr-labels
+  io.webvuln-runner.managed: "true"
+  io.webvuln-runner.lab: ${WVR_LAB:-djangoat}
+  io.webvuln-runner.instance: ${WVR_INSTANCE:-}
+  io.webvuln-runner.url: ${WVR_URL:-}
+  io.webvuln-runner.health: ${WVR_HEALTH:-}
+
+services:
+  web:
+    build:
+      context: https://github.com/Contrast-Security-OSS/DjanGoat.git#082c88bfefced508ae083b92b459c808f95e905e
+      dockerfile_inline: |
+        FROM python:2.7
+        WORKDIR /app
+        COPY . .
+        RUN pip install --no-cache-dir -r requirements.txt
+        EXPOSE 8000
+        CMD ["sh", "-c", "python manage.py migrate && (python manage.py seed || true) && exec python manage.py runserver 0.0.0.0:8000"]
+    image: webvuln-runner/djangoat:082c88b
+    labels: *wvr-labels
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-8110}:8000"
