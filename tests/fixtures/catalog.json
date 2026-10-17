@@ -33,7 +33,7 @@
       "source": "https://hub.docker.com/_/nginx",
       "level": "beginner",
       "topics": [
-        "misconfig"
+        "secrets-config"
       ],
       "license": "BSD-2-Clause",
       "verified": "2026-10-17"
@@ -66,7 +66,7 @@
       "source": "https://hub.docker.com/_/nginx",
       "level": "beginner",
       "topics": [
-        "misconfig"
+        "secrets-config"
       ],
       "license": "BSD-2-Clause",
       "verified": "2026-10-17"
@@ -93,7 +93,7 @@
       "source": "https://hub.docker.com/_/nginx",
       "level": "beginner",
       "topics": [
-        "misconfig"
+        "secrets-config"
       ],
       "license": "BSD-2-Clause",
       "verified": "2026-10-17"

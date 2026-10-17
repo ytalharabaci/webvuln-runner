@@ -25,24 +25,15 @@
       "source": "https://github.com/juice-shop/juice-shop",
       "level": "beginner",
       "topics": [
-        "sqli",
-        "nosqli",
-        "xss",
-        "csrf",
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
         "ssrf",
-        "xxe",
-        "ssti",
-        "idor",
-        "authn",
-        "authz",
-        "jwt",
-        "path-traversal",
-        "file-upload",
-        "deserialization",
-        "business-logic",
-        "vulnerable-deps",
-        "misconfig",
-        "crypto"
+        "files",
+        "secrets-config",
+        "dependencies",
+        "logic-llm"
       ],
       "license": "MIT",
       "verified": "2026-10-17"
@@ -72,13 +63,10 @@
       "source": "https://github.com/digininja/DVWA",
       "level": "beginner",
       "topics": [
-        "sqli",
-        "xss",
-        "csrf",
-        "cmdi",
-        "file-upload",
-        "path-traversal",
-        "authn"
+        "injection",
+        "xss-csrf",
+        "authentication",
+        "files"
       ],
       "license": "GPL-3.0",
       "verified": "2026-10-17"
@@ -119,18 +107,14 @@
       "source": "https://github.com/WebGoat/WebGoat",
       "level": "beginner",
       "topics": [
-        "sqli",
-        "xss",
-        "csrf",
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
         "ssrf",
-        "xxe",
-        "idor",
-        "authn",
-        "jwt",
-        "path-traversal",
-        "deserialization",
-        "vulnerable-deps",
-        "crypto"
+        "files",
+        "secrets-config",
+        "dependencies"
       ],
       "license": "GPL-2.0-or-later",
       "verified": "2026-10-17"
@@ -164,17 +148,13 @@
       "source": "http://www.itsecgames.com/",
       "level": "beginner",
       "topics": [
-        "sqli",
-        "xss",
-        "csrf",
+        "injection",
+        "xss-csrf",
+        "authentication",
         "ssrf",
-        "xxe",
-        "cmdi",
-        "path-traversal",
-        "file-upload",
-        "authn",
-        "misconfig",
-        "vulnerable-deps"
+        "files",
+        "secrets-config",
+        "dependencies"
       ],
       "license": "unknown",
       "verified": "2026-10-17"
@@ -204,16 +184,12 @@
       "source": "https://github.com/webpwnized/mutillidae",
       "level": "beginner",
       "topics": [
-        "sqli",
-        "xss",
-        "csrf",
-        "xxe",
-        "cmdi",
-        "path-traversal",
-        "file-upload",
-        "authn",
-        "authz",
-        "misconfig"
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
+        "files",
+        "secrets-config"
       ],
       "license": "GPL-3.0",
       "verified": "2026-10-17"
@@ -242,19 +218,14 @@
       "source": "https://github.com/s4n7h0/xvwa",
       "level": "beginner",
       "topics": [
-        "sqli",
-        "xss",
-        "csrf",
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
         "ssrf",
-        "cmdi",
-        "ssti",
-        "idor",
-        "authn",
-        "authz",
-        "path-traversal",
-        "file-upload",
-        "deserialization",
-        "crypto"
+        "files",
+        "secrets-config",
+        "dependencies"
       ],
       "license": "GPL-3.0",
       "verified": "2026-10-17"
@@ -284,12 +255,10 @@
       "source": "https://github.com/erev0s/VAmPI",
       "level": "beginner",
       "topics": [
-        "api-top10",
-        "sqli",
-        "idor",
-        "authn",
-        "authz",
-        "jwt"
+        "injection",
+        "access-control",
+        "authentication",
+        "api"
       ],
       "license": "MIT",
       "verified": "2026-10-17"
@@ -318,15 +287,12 @@
       "source": "https://github.com/appsecco/dvna",
       "level": "beginner",
       "topics": [
-        "sqli",
-        "xss",
-        "xxe",
-        "cmdi",
-        "authn",
-        "authz",
-        "deserialization",
-        "vulnerable-deps",
-        "misconfig"
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
+        "secrets-config",
+        "dependencies"
       ],
       "license": "MIT",
       "verified": "2026-10-17"
@@ -354,18 +320,13 @@
       "source": "https://github.com/Yavuzlar/VulnLab",
       "level": "beginner",
       "topics": [
-        "sqli",
-        "xss",
-        "csrf",
-        "xxe",
-        "cmdi",
-        "ssti",
-        "idor",
-        "authn",
-        "path-traversal",
-        "file-upload",
-        "deserialization",
-        "business-logic"
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
+        "files",
+        "dependencies",
+        "logic-llm"
       ],
       "license": "CC-BY-NC-SA-4.0",
       "verified": "2026-10-17"
@@ -395,7 +356,7 @@
       "source": "https://github.com/Audi-1/sqli-labs",
       "level": "beginner",
       "topics": [
-        "sqli"
+        "injection"
       ],
       "license": "unknown",
       "verified": "2026-10-17"
@@ -424,14 +385,11 @@
       "source": "https://github.com/SasanLabs/VulnerableApp",
       "level": "intermediate",
       "topics": [
-        "sqli",
-        "xss",
+        "injection",
+        "xss-csrf",
+        "authentication",
         "ssrf",
-        "xxe",
-        "cmdi",
-        "jwt",
-        "path-traversal",
-        "file-upload"
+        "files"
       ],
       "license": "Apache-2.0",
       "verified": "2026-10-17"
@@ -461,19 +419,13 @@
       "source": "https://github.com/adeyosemanputra/pygoat",
       "level": "beginner",
       "topics": [
-        "sqli",
-        "xss",
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
         "ssrf",
-        "xxe",
-        "cmdi",
-        "ssti",
-        "idor",
-        "authn",
-        "authz",
-        "deserialization",
-        "vulnerable-deps",
-        "misconfig",
-        "crypto"
+        "secrets-config",
+        "dependencies"
       ],
       "license": "MIT",
       "verified": "2026-10-17"
@@ -505,15 +457,14 @@
       "source": "https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application",
       "level": "intermediate",
       "topics": [
-        "graphql",
-        "sqli",
-        "xss",
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
         "ssrf",
-        "cmdi",
-        "authn",
-        "authz",
-        "path-traversal",
-        "misconfig"
+        "files",
+        "api",
+        "secrets-config"
       ],
       "license": "MIT",
       "verified": "2026-10-17"
@@ -542,11 +493,9 @@
       "source": "https://github.com/rapid7/hackazon",
       "level": "intermediate",
       "topics": [
-        "sqli",
-        "xss",
-        "csrf",
-        "cmdi",
-        "path-traversal"
+        "injection",
+        "xss-csrf",
+        "files"
       ],
       "license": "Apache-2.0",
       "verified": "2026-10-17"
@@ -580,11 +529,10 @@
       "source": "https://github.com/OWASP-Benchmark/BenchmarkJava",
       "level": "advanced",
       "topics": [
-        "sqli",
-        "xss",
-        "cmdi",
-        "path-traversal",
-        "crypto"
+        "injection",
+        "xss-csrf",
+        "files",
+        "secrets-config"
       ],
       "license": "GPL-2.0",
       "verified": "2026-10-17"
@@ -613,12 +561,10 @@
       "source": "https://github.com/snoopysecurity/dvws",
       "level": "intermediate",
       "topics": [
-        "xxe",
-        "sqli",
+        "injection",
+        "authentication",
         "ssrf",
-        "cmdi",
-        "jwt",
-        "misconfig"
+        "secrets-config"
       ],
       "license": "Apache-2.0",
       "verified": "2026-10-17"
@@ -646,14 +592,12 @@
       "source": "https://github.com/sgabe/DSVPWA",
       "level": "beginner",
       "topics": [
-        "sqli",
-        "xss",
-        "csrf",
-        "cmdi",
-        "authn",
-        "path-traversal",
-        "deserialization",
-        "misconfig"
+        "injection",
+        "xss-csrf",
+        "authentication",
+        "files",
+        "secrets-config",
+        "dependencies"
       ],
       "license": "MIT",
       "verified": "2026-10-17"
@@ -753,13 +697,12 @@
       "source": "https://github.com/yusufarbc/APIGoat",
       "level": "beginner",
       "topics": [
-        "api-top10",
-        "idor",
-        "authn",
-        "authz",
+        "access-control",
+        "authentication",
         "ssrf",
-        "business-logic",
-        "misconfig"
+        "api",
+        "secrets-config",
+        "logic-llm"
       ],
       "license": "GPL-3.0",
       "verified": "2026-10-17"
@@ -802,16 +745,12 @@
       "source": "https://github.com/OWASP/crAPI",
       "level": "intermediate",
       "topics": [
-        "api-top10",
-        "sqli",
-        "nosqli",
+        "injection",
+        "access-control",
+        "authentication",
         "ssrf",
-        "idor",
-        "authn",
-        "authz",
-        "jwt",
-        "business-logic",
-        "llm-mcp"
+        "api",
+        "logic-llm"
       ],
       "license": "Apache-2.0",
       "verified": "2026-10-17"
@@ -843,15 +782,13 @@
       "source": "https://github.com/OWASP/NodeGoat",
       "level": "beginner",
       "topics": [
-        "nosqli",
-        "xss",
-        "csrf",
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
         "ssrf",
-        "idor",
-        "authn",
-        "authz",
-        "vulnerable-deps",
-        "misconfig"
+        "secrets-config",
+        "dependencies"
       ],
       "license": "Apache-2.0",
       "verified": "2026-10-17"
@@ -883,19 +820,15 @@
       "source": "https://github.com/snoopysecurity/dvws-node",
       "level": "intermediate",
       "topics": [
-        "graphql",
-        "sqli",
-        "nosqli",
-        "xss",
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
         "ssrf",
-        "xxe",
-        "cmdi",
-        "idor",
-        "authz",
-        "jwt",
-        "path-traversal",
-        "deserialization",
-        "misconfig"
+        "files",
+        "api",
+        "secrets-config",
+        "dependencies"
       ],
       "license": "GPL-3.0",
       "verified": "2026-10-17"
@@ -925,12 +858,10 @@
       "source": "https://github.com/snyk-labs/nodejs-goof",
       "level": "beginner",
       "topics": [
-        "vulnerable-deps",
-        "nosqli",
-        "xss",
-        "cmdi",
-        "secrets",
-        "misconfig"
+        "injection",
+        "xss-csrf",
+        "secrets-config",
+        "dependencies"
       ],
       "license": "Apache-2.0",
       "verified": "2026-10-17"
@@ -997,13 +928,11 @@
       "source": "https://github.com/rootxjs/grpc-goat",
       "level": "intermediate",
       "topics": [
-        "grpc",
-        "sqli",
+        "injection",
+        "authentication",
         "ssrf",
-        "cmdi",
-        "authn",
-        "misconfig",
-        "crypto"
+        "api",
+        "secrets-config"
       ],
       "license": "MIT",
       "verified": "2026-10-17"
@@ -1090,9 +1019,9 @@
       "source": "https://github.com/harishsg993010/damn-vulnerable-MCP-server",
       "level": "intermediate",
       "topics": [
-        "llm-mcp",
-        "authz",
-        "secrets"
+        "access-control",
+        "secrets-config",
+        "logic-llm"
       ],
       "license": "unknown",
       "verified": "2026-10-17"
@@ -1123,9 +1052,7 @@
       "source": "https://github.com/OWASP/wrongsecrets",
       "level": "beginner",
       "topics": [
-        "secrets",
-        "misconfig",
-        "crypto"
+        "secrets-config"
       ],
       "license": "AGPL-3.0",
       "verified": "2026-10-17"
@@ -1167,24 +1094,15 @@
       "source": "https://github.com/NeuraLegion/brokencrystals",
       "level": "intermediate",
       "topics": [
-        "sqli",
-        "xss",
-        "csrf",
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
         "ssrf",
-        "xxe",
-        "cmdi",
-        "ssti",
-        "idor",
-        "authn",
-        "authz",
-        "jwt",
-        "path-traversal",
-        "file-upload",
-        "business-logic",
-        "secrets",
-        "misconfig",
-        "graphql",
-        "llm-mcp"
+        "files",
+        "api",
+        "secrets-config",
+        "logic-llm"
       ],
       "license": "MIT",
       "verified": "2026-10-17"
@@ -1215,12 +1133,11 @@
       "source": "https://github.com/Contrast-Security-OSS/DjanGoat",
       "level": "beginner",
       "topics": [
-        "sqli",
-        "xss",
-        "csrf",
-        "authn",
-        "authz",
-        "misconfig"
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
+        "secrets-config"
       ],
       "license": "MIT",
       "verified": "2026-10-17"
@@ -1253,13 +1170,11 @@
       "source": "https://github.com/OWASP/SecurityShepherd",
       "level": "beginner",
       "topics": [
-        "sqli",
-        "xss",
-        "csrf",
-        "idor",
-        "authn",
-        "authz",
-        "crypto"
+        "injection",
+        "xss-csrf",
+        "access-control",
+        "authentication",
+        "secrets-config"
       ],
       "license": "GPL-3.0",
       "verified": "2026-10-17"

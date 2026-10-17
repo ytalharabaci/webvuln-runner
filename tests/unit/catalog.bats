@@ -7,7 +7,7 @@ setup() { wvr_test_setup; }
 teardown() { wvr_test_teardown; }
 
 lab() { # id host [extra json fields]
-  printf '{"id":"%s","name":"Lab %s","description":"d","category":"web","type":"image","image":"x/%s:1.0","level":"beginner","topics":["sqli"],"license":"MIT","verified":"2026-10-17","ports":[{"name":"web","container":80,"host":%s}]%s}' \
+  printf '{"id":"%s","name":"Lab %s","description":"d","category":"web","type":"image","image":"x/%s:1.0","level":"beginner","topics":["injection"],"license":"MIT","verified":"2026-10-17","ports":[{"name":"web","container":80,"host":%s}]%s}' \
     "$1" "$1" "$1" "$2" "${3:+,$3}"
 }
 
@@ -123,7 +123,7 @@ lab() { # id host [extra json fields]
 }
 
 @test "topics must come from the vocabulary and may not be empty" {
-  f="$(write_catalog "[$(lab a 8001 '"topics":["sqli","telepathy"]'), $(lab b 8002 '"topics":[]')]")"
+  f="$(write_catalog "[$(lab a 8001 '"topics":["injection","telepathy"]'), $(lab b 8002 '"topics":[]')]")"
   run wvr_catalog_validate "$f"
   [ "$status" -eq 1 ]
   [[ "$output" == *"a: unknown topic: telepathy"* ]]
@@ -152,17 +152,17 @@ lab() { # id host [extra json fields]
 }
 
 @test "filtering by topic, category and level combines" {
-  run wvr_catalog_list_filtered sqli "" ""
+  run wvr_catalog_list_filtered injection "" ""
   [[ "$output" == *"sqli-labs"* ]]
   [[ "$output" != *"wrongsecrets"* ]]
-  run wvr_catalog_list_filtered secrets "" beginner
-  [ "$(cut -f1 <<<"$output" | sort | tr '\n' ' ')" = "goof wrongsecrets " ]
+  run wvr_catalog_list_filtered logic-llm "" intermediate
+  [ "$(cut -f1 <<<"$output" | sort | tr '\n' ' ')" = "brokencrystals crapi dvmcp " ]
   run wvr_catalog_list_filtered "" graphql ""
   [ "$(cut -f1 <<<"$output")" = "dvga" ]
 }
 
 @test "topic counts match the catalog" {
   run wvr_catalog_topics
-  [[ "$output" == *"$(printf 'grpc\t1')"* ]]
-  [ "$(grep -P '^sqli\t' <<<"$output" | cut -f2)" -eq "$(jq '[.labs[] | select(.topics | index("sqli"))] | length' "$REPO_ROOT/src/catalog.json")" ]
+  [ "$(grep -P '^api	' <<<"$output" | cut -f2)" -eq "$(jq '[.labs[] | select(.topics | index("api"))] | length' "$REPO_ROOT/src/catalog.json")" ]
+  [ "$(grep -P '^injection\t' <<<"$output" | cut -f2)" -eq "$(jq '[.labs[] | select(.topics | index("injection"))] | length' "$REPO_ROOT/src/catalog.json")" ]
 }

@@ -4,10 +4,13 @@
 WVR_CATEGORIES='["web","rest-api","graphql","grpc","ai-mcp","benchmark","training"]'
 WVR_LEVELS='["beginner","intermediate","advanced"]'
 # What a lab lets you practise. Keep in sync with README "Adding a lab" and index.html.
-WVR_TOPICS='["sqli","nosqli","xss","csrf","ssrf","xxe","cmdi","ssti",
-  "idor","authn","authz","jwt","path-traversal","file-upload","deserialization",
-  "business-logic","secrets","misconfig","vulnerable-deps",
-  "api-top10","graphql","grpc","llm-mcp","crypto"]'
+# injection: SQL/NoSQL, OS command, template (SSTI), XXE   xss-csrf: XSS, CSRF
+# access-control: IDOR/BOLA, authorization                 authentication: login, sessions, JWT
+# files: path traversal, file upload                       api: REST API Top 10, GraphQL, gRPC
+# secrets-config: secrets, misconfiguration, crypto        dependencies: vulnerable components, deserialization
+# logic-llm: business logic, LLM/MCP
+WVR_TOPICS='["injection","xss-csrf","access-control","authentication","ssrf",
+  "files","api","secrets-config","dependencies","logic-llm"]'
 # Labs not re-verified (scripts/labs-smoke.sh --update-verified) for this long get a warning.
 WVR_VERIFIED_MAX_DAYS=180
 
