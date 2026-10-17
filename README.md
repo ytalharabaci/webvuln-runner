@@ -37,7 +37,7 @@ Start deliberately vulnerable web apps, APIs and benchmark targets in Docker —
 - **Readiness checks:** the container being "running" is not the same as the app being ready — WebVuln-Runner waits until the app answers and tells you when it does.
 - **Single-container and Docker Compose labs:** multi-service labs such as OWASP crAPI and NodeGoat start as one unit.
 - **Beyond classic web labs:** REST and GraphQL APIs, Node.js, Java, Python and PHP stacks, and the OWASP Benchmark for measuring SAST/DAST tools.
-- **TUI and CLI:** a whiptail menu for interactive use, and a scriptable command line for automation and CI.
+- **One TUI for every lab:** a terminal menu to add, start, stop, inspect and remove labs. The same actions are also available as commands (see [Command line](#command-line)), which the tests use.
 - **Pick by what you want to learn:** every lab is tagged with one or more of 10 vulnerability topics (injection, XSS & CSRF, access control, authentication, SSRF, files, API, secrets & config, dependencies, logic & LLM) and a level. Use `webvuln-runner catalog --topic ssrf --level beginner`, the menu's "By topic" option, or the filters on the web catalog.
 - **One catalog:** [`src/catalog.json`](src/catalog.json) drives the TUI, the CLI, this README's lab table and the [web catalog](https://yusufarbc.github.io/webvuln-runner/). It records each lab's license and the date it was last verified to start.
 
@@ -201,7 +201,11 @@ Default credentials and first-run steps are shown after a lab starts. They are a
 `installers/install.sh` supports **Debian / Ubuntu / Kali**, **Fedora / RHEL / CentOS / Rocky / AlmaLinux** and **Arch Linux**. It:
 
 1. installs Docker (from Docker's own repository on Red Hat family systems), the Compose v2 plugin where available, `whiptail`, `jq` and `curl`, and enables the Docker service;
-2. downloads the release tarball, verifies it against the release's `SHA256SUMS` and refuses to install on mismatch;
+2. downloads the release tarball, verifies it against the release's `SHA256SUMS` and refuses to install on mismatch. From 2.2.1 on, every tarball also carries a signed build provenance attestation, so you can check that it was built by this repository's release workflow and not uploaded by hand:
+   ```sh
+   gh release download v2.2.1 --repo yusufarbc/webvuln-runner --pattern '*.tar.gz'
+   gh attestation verify webvuln-runner-2.2.1.tar.gz --repo yusufarbc/webvuln-runner
+   ```
 3. installs to `/usr/local/lib/webvuln-runner`, with `webvuln-runner` (and the 1.x name `WebVuln-Runner`) in `/usr/local/bin`.
 
 Options are environment variables: `WVR_RELEASE=v2.2.0`, `WVR_DISTRO=debian|redhat|arch`, `WVR_SKIP_DEPS=1`.
