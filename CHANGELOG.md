@@ -5,6 +5,11 @@ The release workflow publishes the section of the tagged version as the GitHub r
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-10-18
+
+### Changed
+- Updated APIGoat (`apigoat`) container image to `ytalharabaci/apigoat:latest` and project repository source URL to `https://github.com/ytalharabaci/APIGoat`.
+
 ## [2.3.0] - 2026-10-18
 
 ### Security
@@ -76,7 +81,8 @@ First release of the rewritten tool.
 - 1.x stopped the image name instead of the container and showed an empty name after creating a lab.
 - Broken catalog entries: XVWA and Hackazon images Docker can no longer pull, the removed DVWS image, the wrong DSVPWA port, DVGA's missing `WEB_HOST`, the Benchmark start command.
 
-[Unreleased]: https://github.com/yusufarbc/webvuln-runner/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/yusufarbc/webvuln-runner/compare/v2.3.1...HEAD
+[2.3.1]: https://github.com/yusufarbc/webvuln-runner/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/yusufarbc/webvuln-runner/compare/v2.2.1...v2.3.0
 [2.2.1]: https://github.com/yusufarbc/webvuln-runner/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/yusufarbc/webvuln-runner/compare/v2.1.0...v2.2.0

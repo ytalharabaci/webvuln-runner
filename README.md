@@ -56,7 +56,7 @@ The labs are **intentionally vulnerable**. Treat every one of them as hostile co
 ## Quick start
 ```sh
 # Download the installer of a tagged release, read it, then run it
-curl -fsSLO https://raw.githubusercontent.com/yusufarbc/webvuln-runner/v2.3.0/installers/install.sh
+curl -fsSLO https://raw.githubusercontent.com/yusufarbc/webvuln-runner/v2.3.1/installers/install.sh
 less install.sh
 sudo bash install.sh
 
@@ -165,7 +165,7 @@ Exit codes: `0` ok, `1` error, `2` usage error, `3` lab started but did not answ
 | [OWASP Benchmark](https://github.com/OWASP-Benchmark/BenchmarkJava) | `owasp-benchmark` | benchmark | advanced | injection, xss-csrf, files, secrets-config | image | 8443 | GPL-2.0 | 2026-10-17 |
 | [DVWS (PHP)](https://github.com/snoopysecurity/dvws) | `dvws` | rest-api | intermediate | injection, authentication, ssrf, secrets-config | image | 8088 | Apache-2.0 | 2026-10-17 |
 | [DSVPWA](https://github.com/sgabe/DSVPWA) | `dsvpwa` | web | beginner | injection, xss-csrf, authentication, files, secrets-config, dependencies | image | 65413 | MIT | 2026-10-17 |
-| [APIGoat](https://github.com/yusufarbc/APIGoat) | `apigoat` | rest-api | beginner | access-control, authentication, ssrf, api, secrets-config, logic-llm | image | 8000, 8001-8010 | GPL-3.0 | 2026-10-17 |
+| [APIGoat](https://github.com/ytalharabaci/APIGoat) | `apigoat` | rest-api | beginner | access-control, authentication, ssrf, api, secrets-config, logic-llm | image | 8000, 8001-8010 | GPL-3.0 | 2026-10-18 |
 | [OWASP crAPI](https://github.com/OWASP/crAPI) | `crapi` | rest-api | intermediate | injection, access-control, authentication, ssrf, api, logic-llm | compose | 8888, 8025 | Apache-2.0 | 2026-10-17 |
 | [OWASP NodeGoat](https://github.com/OWASP/NodeGoat) | `nodegoat` | web | beginner | injection, xss-csrf, access-control, authentication, ssrf, secrets-config, dependencies | compose | 4000 | Apache-2.0 | 2026-10-17 |
 | [DVWS-Node](https://github.com/snoopysecurity/dvws-node) | `dvws-node` | rest-api | intermediate | injection, xss-csrf, access-control, authentication, ssrf, files, api, secrets-config, dependencies | compose | 8089 | GPL-3.0 | 2026-10-17 |
@@ -205,12 +205,12 @@ Default credentials and first-run steps are shown after a lab starts. They are a
 1. installs Docker (from Docker's own repository on Red Hat family systems), the Compose v2 plugin where available, `whiptail`, `jq` and `curl`, and enables the Docker service;
 2. downloads the release tarball, verifies it against the release's `SHA256SUMS` and refuses to install on mismatch. Every tarball also carries a signed build provenance attestation, so you can check that it was built by this repository's release workflow and not uploaded by hand:
    ```sh
-   gh release download v2.3.0 --repo yusufarbc/webvuln-runner --pattern '*.tar.gz'
-   gh attestation verify webvuln-runner-2.3.0.tar.gz --repo yusufarbc/webvuln-runner
+   gh release download v2.3.1 --repo yusufarbc/webvuln-runner --pattern '*.tar.gz'
+   gh attestation verify webvuln-runner-2.3.1.tar.gz --repo yusufarbc/webvuln-runner
    ```
 3. installs to `/usr/local/lib/webvuln-runner`, with `webvuln-runner` (and the 1.x name `WebVuln-Runner`) in `/usr/local/bin`.
 
-Options are environment variables: `WVR_RELEASE=v2.3.0`, `WVR_DISTRO=debian|redhat|arch`, `WVR_SKIP_DEPS=1`.
+Options are environment variables: `WVR_RELEASE=v2.3.1`, `WVR_DISTRO=debian|redhat|arch`, `WVR_SKIP_DEPS=1`.
 
 **From a git checkout:** `sudo installers/install-files.sh` installs the files of the checkout. You can also run `src/webvuln-runner` directly without installing.
 

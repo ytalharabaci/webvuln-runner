@@ -613,7 +613,7 @@
         "MongoDB"
       ],
       "type": "image",
-      "image": "yusufarbc/apigoat:v1.0",
+      "image": "ytalharabaci/apigoat:latest",
       "ports": [
         {
           "name": "web",
@@ -694,7 +694,7 @@
         }
       ],
       "ram_mb": 1024,
-      "source": "https://github.com/yusufarbc/APIGoat",
+      "source": "https://github.com/ytalharabaci/APIGoat",
       "level": "beginner",
       "topics": [
         "access-control",
@@ -705,7 +705,7 @@
         "logic-llm"
       ],
       "license": "GPL-3.0",
-      "verified": "2026-10-17"
+      "verified": "2026-10-18"
     },
     {
       "id": "crapi",

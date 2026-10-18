@@ -204,11 +204,11 @@
                     <p class="lead">Debian / Ubuntu / Kali, Fedora / RHEL / Rocky / AlmaLinux and Arch Linux.</p>
                     <p>The installer installs Docker and the other dependencies. It then downloads a tagged release,
                         verifies its SHA-256 checksum and installs the <code>webvuln-runner</code> command.</p>
-                    <pre class="bg-dark text-white p-3 rounded"><code>curl -fsSLO https://raw.githubusercontent.com/yusufarbc/webvuln-runner/v2.3.0/installers/install.sh
+                    <pre class="bg-dark text-white p-3 rounded"><code>curl -fsSLO https://raw.githubusercontent.com/yusufarbc/webvuln-runner/v2.3.1/installers/install.sh
 less install.sh        # read it first
 sudo bash install.sh</code></pre>
                     <p class="small text-muted mb-1">Verify signed build provenance attestation (GitHub CLI):</p>
-                    <pre class="bg-dark text-white p-3 rounded small"><code>gh attestation verify webvuln-runner-2.3.0.tar.gz --repo yusufarbc/webvuln-runner</code></pre>
+                    <pre class="bg-dark text-white p-3 rounded small"><code>gh attestation verify webvuln-runner-2.3.1.tar.gz --repo yusufarbc/webvuln-runner</code></pre>
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle"></i> Docker access is equivalent to root. Run
                         <code>sudo webvuln-runner</code>, or add your user to the <code>docker</code> group knowing what
