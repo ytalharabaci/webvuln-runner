@@ -1,0 +1,74 @@
+name: Lab Request
+description: Propose adding a new vulnerable lab or benchmark target to the catalog
+title: "[Lab Request]: "
+labels: ["lab-request", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggest a new deliberately vulnerable web application, API, or security benchmark to include in WebVuln-Runner!
+  - type: input
+    id: lab_name
+    attributes:
+      label: Lab Name
+      placeholder: "e.g. Damn Vulnerable Web Sockets"
+    validations:
+      required: true
+  - type: input
+    id: repository
+    attributes:
+      label: Upstream Repository URL
+      placeholder: "e.g. https://github.com/..."
+    validations:
+      required: true
+  - type: input
+    id: image
+    attributes:
+      label: Docker Image / Registry
+      placeholder: "e.g. user/lab:v1.0.0 (or Compose repository)"
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Target Category
+      options:
+        - web
+        - rest-api
+        - graphql
+        - grpc
+        - ai-mcp
+        - benchmark
+        - training
+    validations:
+      required: true
+  - type: checkboxes
+    id: topics
+    attributes:
+      label: Vulnerability Topics Covered
+      options:
+        - label: injection (SQLi, command, SSTI, XXE)
+        - label: xss-csrf (XSS, CSRF)
+        - label: access-control (IDOR, BOLA, authorization)
+        - label: authentication (sessions, JWT, OAuth)
+        - label: ssrf (Server-Side Request Forgery)
+        - label: files (path traversal, file upload)
+        - label: api (API Top 10, GraphQL, gRPC)
+        - label: secrets-config (secrets, misconfiguration, crypto)
+        - label: dependencies (vulnerable components, deserialization)
+        - label: logic-llm (business logic, LLM/MCP)
+  - type: input
+    id: license
+    attributes:
+      label: Upstream License
+      placeholder: "e.g. MIT, Apache-2.0, GPL-3.0"
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why should this lab be added?
+      description: What novel vulnerabilities, technology stack, or learning objectives does it offer compared to existing catalog labs?
+    validations:
+      required: true
+

@@ -1,0 +1,20 @@
+# VulnerableLightApp - adapted from https://github.com/Aif4thah/VulnerableLightApp
+# Deliberately vulnerable .NET Core / ASP.NET Core API application (GPL-3.0 License).
+# Builds the web service from pinned upstream commit 8998b55caab6a4a5bb2d725ad054c797c7d101f4.
+
+x-wvr-labels: &wvr-labels
+  io.webvuln-runner.managed: "true"
+  io.webvuln-runner.lab: ${WVR_LAB:-vulnerablelightapp}
+  io.webvuln-runner.instance: ${WVR_INSTANCE:-}
+  io.webvuln-runner.url: ${WVR_URL:-}
+  io.webvuln-runner.health: ${WVR_HEALTH:-}
+
+services:
+  web:
+    build: https://github.com/Aif4thah/VulnerableLightApp.git#8998b55caab6a4a5bb2d725ad054c797c7d101f4
+    image: webvuln-runner/vulnerablelightapp:8998b55
+    labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-8097}:3000"
+

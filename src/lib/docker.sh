@@ -250,7 +250,7 @@ wvr_rm_network() {
 
 wvr_up_image() {
   local id="$1" name="$2" bind="$3" plan="$4" url="$5" health="$6"
-  local image workdir cid cport host kv net
+  local image workdir cid cport host kv net created_net=0 created_cid="" err_out
   local -a args run_cmd hardening
 
   image="$(wvr_catalog_get "$id" .image)"
@@ -280,29 +280,54 @@ wvr_up_image() {
   [[ -n "$workdir" ]] && args+=(-w "$workdir")
   mapfile -t run_cmd < <(wvr_catalog_get "$id" '(.command // [])[]')
 
+  # shellcheck disable=SC2329 # invoked via trap on INT/TERM
+  _wvr_cleanup_up_image() {
+    trap - INT TERM
+    [[ -n "$created_cid" ]] && docker rm -f "$created_cid" >/dev/null 2>&1
+    (( created_net )) && wvr_rm_network "$name"
+    return 1
+  }
+  trap '_wvr_cleanup_up_image; return 1 2>/dev/null || exit 1' INT TERM
+
   if ! docker image inspect "$image" >/dev/null 2>&1; then
     wvr_info "Pulling $image ..."
-    docker pull "$image" || { wvr_err "could not pull $image"; return 1; }
+    if ! docker pull "$image"; then
+      trap - INT TERM
+      wvr_err "could not pull $image"
+      return 1
+    fi
   fi
-  docker network create \
+  if ! docker network create \
     --label "${WVR_LABEL_MANAGED}=true" --label "${WVR_LABEL_LAB}=$id" --label "${WVR_LABEL_INSTANCE}=$name" \
-    "$net" >/dev/null || { wvr_err "could not create network '$net'"; return 1; }
+    "$net" >/dev/null; then
+    trap - INT TERM
+    wvr_err "could not create network '$net'"
+    return 1
+  fi
+  created_net=1
   if ! cid="$(docker create "${args[@]}" "$image" "${run_cmd[@]}")"; then
+    trap - INT TERM
     wvr_err "could not create container '$name'"
     wvr_rm_network "$name"
     return 1
   fi
-  if ! docker start "$cid" >/dev/null; then
+  created_cid="$cid"
+  if ! err_out="$(docker start "$cid" 2>&1)"; then
+    trap - INT TERM
     wvr_err "container '$name' was created but failed to start; removing it"
+    if [[ -n "$err_out" ]] && grep -qi "port is already allocated\|address already in use" <<<"$err_out"; then
+      wvr_err "port allocation conflict: host port is already bound by another process"
+    fi
     docker rm -f "$cid" >/dev/null 2>&1
     wvr_rm_network "$name"
     return 1
   fi
+  trap - INT TERM
 }
 
 wvr_up_compose() {
   local id="$1" name="$2" bind="$3" plan="$4" url="$5" health="$6"
-  local file pname host var
+  local file pname host var err_file
   local -a envs
 
   file="$WVR_HOME/$(wvr_catalog_get "$id" .compose)"
@@ -315,11 +340,27 @@ wvr_up_compose() {
     envs+=("$var=$host")
   done <<<"$plan"
 
-  if ! env "${envs[@]}" docker compose -p "$name" -f "$file" up -d; then
+  # shellcheck disable=SC2329 # invoked via trap on INT/TERM
+  _wvr_cleanup_up_compose() {
+    trap - INT TERM
+    env "${envs[@]}" docker compose -p "$name" -f "$file" down --remove-orphans >/dev/null 2>&1
+    return 1
+  }
+  trap '_wvr_cleanup_up_compose; return 1 2>/dev/null || exit 1' INT TERM
+
+  err_file="$(mktemp)"
+  if ! env "${envs[@]}" docker compose -p "$name" -f "$file" up -d 2>"$err_file"; then
+    trap - INT TERM
     wvr_err "docker compose failed for '$name'; cleaning up"
+    if grep -qi "port is already allocated\|address already in use" "$err_file" 2>/dev/null; then
+      wvr_err "port allocation conflict in Compose services: host port is already bound"
+    fi
+    rm -f "$err_file"
     env "${envs[@]}" docker compose -p "$name" -f "$file" down --remove-orphans >/dev/null 2>&1
     return 1
   fi
+  rm -f "$err_file"
+  trap - INT TERM
 }
 
 wvr_start() {

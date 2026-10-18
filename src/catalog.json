@@ -1178,6 +1178,77 @@
       ],
       "license": "GPL-3.0",
       "verified": "2026-10-17"
+    },
+    {
+      "id": "wsgoat",
+      "name": "WebSocket GOAT",
+      "description": "Vulnerable WebSocket chat, auth & CSWSH labs",
+      "category": "web",
+      "stack": [
+        "Node.js",
+        "WebSocket",
+        "PostgreSQL"
+      ],
+      "type": "compose",
+      "compose": "compose/wsgoat/compose.yml",
+      "ports": [
+        {
+          "name": "web",
+          "host": 8096,
+          "scheme": "http",
+          "path": "/"
+        }
+      ],
+      "ram_mb": 512,
+      "credentials": "Register a new user account (or two accounts for chat)",
+      "notes": "WebSocket security training target covering CSWSH, auth bypass and private chat logic.",
+      "source": "https://github.com/makarov05bm/wsgoat",
+      "level": "intermediate",
+      "topics": [
+        "access-control",
+        "authentication",
+        "xss-csrf",
+        "api"
+      ],
+      "license": "unknown",
+      "verified": "2026-10-18"
+    },
+    {
+      "id": "vulnerablelightapp",
+      "name": "VulnerableLightApp",
+      "description": "Vulnerable ASP.NET Core REST API & SIEM logging",
+      "category": "rest-api",
+      "stack": [
+        "C#",
+        ".NET",
+        "ASP.NET Core"
+      ],
+      "type": "compose",
+      "compose": "compose/vulnerablelightapp/compose.yml",
+      "ports": [
+        {
+          "name": "web",
+          "host": 8097,
+          "scheme": "https",
+          "path": "/"
+        }
+      ],
+      "ram_mb": 512,
+      "credentials": "None required (API endpoints)",
+      "notes": ".NET Core API vulnerability training ground. Runs on self-signed HTTPS.",
+      "source": "https://github.com/Aif4thah/VulnerableLightApp",
+      "level": "intermediate",
+      "topics": [
+        "injection",
+        "access-control",
+        "ssrf",
+        "files",
+        "api",
+        "secrets-config",
+        "dependencies"
+      ],
+      "license": "GPL-3.0",
+      "verified": "2026-10-18"
     }
   ]
 }

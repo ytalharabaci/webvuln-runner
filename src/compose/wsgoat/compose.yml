@@ -1,0 +1,48 @@
+# WebSocket GOAT (WSGoat) - adapted from https://github.com/makarov05bm/wsgoat
+# Deliberately vulnerable WebSocket web application (authentication, authorization, CSWSH, private chat).
+# Builds the web service from pinned upstream commit 387306cdce67d7f1294cff759ba53783c5ca9bb9.
+
+x-wvr-labels: &wvr-labels
+  io.webvuln-runner.managed: "true"
+  io.webvuln-runner.lab: ${WVR_LAB:-wsgoat}
+  io.webvuln-runner.instance: ${WVR_INSTANCE:-}
+  io.webvuln-runner.url: ${WVR_URL:-}
+  io.webvuln-runner.health: ${WVR_HEALTH:-}
+
+services:
+  db:
+    image: postgres:17-alpine
+    labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      POSTGRES_USER: psuser
+      POSTGRES_PASSWORD: psuser
+      POSTGRES_DB: dv_db
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U psuser -d dv_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: https://github.com/makarov05bm/wsgoat.git#387306cdce67d7f1294cff759ba53783c5ca9bb9
+    image: webvuln-runner/wsgoat:387306c
+    labels: *wvr-labels
+    security_opt: ["no-new-privileges:true"]
+    ports:
+      - "${WVR_BIND:-127.0.0.1}:${WVR_PORT_WEB:-8096}:3000"
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://psuser:psuser@db:5432/dv_db
+      JWT_SECRET: development-only-secret
+      COOKIE_SECURE: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+

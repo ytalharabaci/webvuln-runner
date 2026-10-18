@@ -56,7 +56,7 @@ The labs are **intentionally vulnerable**. Treat every one of them as hostile co
 ## Quick start
 ```sh
 # Download the installer of a tagged release, read it, then run it
-curl -fsSLO https://raw.githubusercontent.com/yusufarbc/webvuln-runner/v2.2.1/installers/install.sh
+curl -fsSLO https://raw.githubusercontent.com/yusufarbc/webvuln-runner/v2.3.0/installers/install.sh
 less install.sh
 sudo bash install.sh
 
@@ -176,23 +176,25 @@ Exit codes: `0` ok, `1` error, `2` usage error, `3` lab started but did not answ
 | [BrokenCrystals](https://github.com/NeuraLegion/brokencrystals) | `brokencrystals` | web | intermediate | injection, xss-csrf, access-control, authentication, ssrf, files, api, secrets-config, logic-llm | compose | 3100, 1080 | MIT | 2026-10-17 |
 | [DjanGoat](https://github.com/Contrast-Security-OSS/DjanGoat) | `djangoat` | web | beginner | injection, xss-csrf, access-control, authentication, secrets-config | compose | 8110 | MIT | 2026-10-17 |
 | [OWASP Security Shepherd](https://github.com/OWASP/SecurityShepherd) | `security-shepherd` | training | beginner | injection, xss-csrf, access-control, authentication, secrets-config | compose | 8445 | GPL-3.0 | 2026-10-17 |
+| [WebSocket GOAT](https://github.com/makarov05bm/wsgoat) | `wsgoat` | web | intermediate | access-control, authentication, xss-csrf, api | compose | 8096 | unknown | 2026-10-18 |
+| [VulnerableLightApp](https://github.com/Aif4thah/VulnerableLightApp) | `vulnerablelightapp` | rest-api | intermediate | injection, access-control, ssrf, files, api, secrets-config, dependencies | compose | 8097 | GPL-3.0 | 2026-10-18 |
 
 ### Labs by topic
 
 | Topic | Labs |
 |---|---|
-| `access-control` | `juice-shop`, `webgoat`, `mutillidae`, `xvwa`, `vampi`, `dvna`, `vulnlab`, `pygoat`, `dvga`, `apigoat`, `crapi`, `nodegoat`, `dvws-node`, `dvmcp`, `brokencrystals`, `djangoat`, `security-shepherd` |
-| `api` | `vampi`, `dvga`, `apigoat`, `crapi`, `dvws-node`, `grpc-goat`, `brokencrystals` |
-| `authentication` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `vampi`, `dvna`, `vulnlab`, `vulnerableapp`, `pygoat`, `dvga`, `dvws`, `dsvpwa`, `apigoat`, `crapi`, `nodegoat`, `dvws-node`, `grpc-goat`, `brokencrystals`, `djangoat`, `security-shepherd` |
-| `dependencies` | `juice-shop`, `webgoat`, `bwapp`, `xvwa`, `dvna`, `vulnlab`, `pygoat`, `dsvpwa`, `nodegoat`, `dvws-node`, `goof` |
-| `files` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `vulnlab`, `vulnerableapp`, `dvga`, `hackazon`, `owasp-benchmark`, `dsvpwa`, `dvws-node`, `brokencrystals` |
-| `injection` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `vampi`, `dvna`, `vulnlab`, `sqli-labs`, `vulnerableapp`, `pygoat`, `dvga`, `hackazon`, `owasp-benchmark`, `dvws`, `dsvpwa`, `crapi`, `nodegoat`, `dvws-node`, `goof`, `grpc-goat`, `brokencrystals`, `djangoat`, `security-shepherd` |
+| `access-control` | `juice-shop`, `webgoat`, `mutillidae`, `xvwa`, `vampi`, `dvna`, `vulnlab`, `pygoat`, `dvga`, `apigoat`, `crapi`, `nodegoat`, `dvws-node`, `dvmcp`, `brokencrystals`, `djangoat`, `security-shepherd`, `wsgoat`, `vulnerablelightapp` |
+| `api` | `vampi`, `dvga`, `apigoat`, `crapi`, `dvws-node`, `grpc-goat`, `brokencrystals`, `wsgoat`, `vulnerablelightapp` |
+| `authentication` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `vampi`, `dvna`, `vulnlab`, `vulnerableapp`, `pygoat`, `dvga`, `dvws`, `dsvpwa`, `apigoat`, `crapi`, `nodegoat`, `dvws-node`, `grpc-goat`, `brokencrystals`, `djangoat`, `security-shepherd`, `wsgoat` |
+| `dependencies` | `juice-shop`, `webgoat`, `bwapp`, `xvwa`, `dvna`, `vulnlab`, `pygoat`, `dsvpwa`, `nodegoat`, `dvws-node`, `goof`, `vulnerablelightapp` |
+| `files` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `vulnlab`, `vulnerableapp`, `dvga`, `hackazon`, `owasp-benchmark`, `dsvpwa`, `dvws-node`, `brokencrystals`, `vulnerablelightapp` |
+| `injection` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `vampi`, `dvna`, `vulnlab`, `sqli-labs`, `vulnerableapp`, `pygoat`, `dvga`, `hackazon`, `owasp-benchmark`, `dvws`, `dsvpwa`, `crapi`, `nodegoat`, `dvws-node`, `goof`, `grpc-goat`, `brokencrystals`, `djangoat`, `security-shepherd`, `vulnerablelightapp` |
 | `logic-llm` | `juice-shop`, `vulnlab`, `apigoat`, `crapi`, `dvmcp`, `brokencrystals` |
-| `secrets-config` | `juice-shop`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `dvna`, `pygoat`, `dvga`, `owasp-benchmark`, `dvws`, `dsvpwa`, `apigoat`, `nodegoat`, `dvws-node`, `goof`, `grpc-goat`, `dvmcp`, `wrongsecrets`, `brokencrystals`, `djangoat`, `security-shepherd` |
-| `ssrf` | `juice-shop`, `webgoat`, `bwapp`, `xvwa`, `vulnerableapp`, `pygoat`, `dvga`, `dvws`, `apigoat`, `crapi`, `nodegoat`, `dvws-node`, `grpc-goat`, `brokencrystals` |
-| `xss-csrf` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `dvna`, `vulnlab`, `vulnerableapp`, `pygoat`, `dvga`, `hackazon`, `owasp-benchmark`, `dsvpwa`, `nodegoat`, `dvws-node`, `goof`, `brokencrystals`, `djangoat`, `security-shepherd` |
+| `secrets-config` | `juice-shop`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `dvna`, `pygoat`, `dvga`, `owasp-benchmark`, `dvws`, `dsvpwa`, `apigoat`, `nodegoat`, `dvws-node`, `goof`, `grpc-goat`, `dvmcp`, `wrongsecrets`, `brokencrystals`, `djangoat`, `security-shepherd`, `vulnerablelightapp` |
+| `ssrf` | `juice-shop`, `webgoat`, `bwapp`, `xvwa`, `vulnerableapp`, `pygoat`, `dvga`, `dvws`, `apigoat`, `crapi`, `nodegoat`, `dvws-node`, `grpc-goat`, `brokencrystals`, `vulnerablelightapp` |
+| `xss-csrf` | `juice-shop`, `dvwa`, `webgoat`, `bwapp`, `mutillidae`, `xvwa`, `dvna`, `vulnlab`, `vulnerableapp`, `pygoat`, `dvga`, `hackazon`, `owasp-benchmark`, `dsvpwa`, `nodegoat`, `dvws-node`, `goof`, `brokencrystals`, `djangoat`, `security-shepherd`, `wsgoat` |
 
-28 labs. Generated from `src/catalog.json` by `scripts/gen-readme-table.sh`. "Verified" is the last date `scripts/labs-smoke.sh` started the lab successfully.
+30 labs. Generated from `src/catalog.json` by `scripts/gen-readme-table.sh`. "Verified" is the last date `scripts/labs-smoke.sh` started the lab successfully.
 <!-- catalog:end -->
 
 Default credentials and first-run steps are shown after a lab starts. They are also listed in the catalog under `credentials` and `notes`.
@@ -201,14 +203,14 @@ Default credentials and first-run steps are shown after a lab starts. They are a
 `installers/install.sh` supports **Debian / Ubuntu / Kali**, **Fedora / RHEL / CentOS / Rocky / AlmaLinux** and **Arch Linux**. It:
 
 1. installs Docker (from Docker's own repository on Red Hat family systems), the Compose v2 plugin where available, `whiptail`, `jq` and `curl`, and enables the Docker service;
-2. downloads the release tarball, verifies it against the release's `SHA256SUMS` and refuses to install on mismatch. From 2.2.1 on, every tarball also carries a signed build provenance attestation, so you can check that it was built by this repository's release workflow and not uploaded by hand:
+2. downloads the release tarball, verifies it against the release's `SHA256SUMS` and refuses to install on mismatch. Every tarball also carries a signed build provenance attestation, so you can check that it was built by this repository's release workflow and not uploaded by hand:
    ```sh
-   gh release download v2.2.1 --repo yusufarbc/webvuln-runner --pattern '*.tar.gz'
-   gh attestation verify webvuln-runner-2.2.1.tar.gz --repo yusufarbc/webvuln-runner
+   gh release download v2.3.0 --repo yusufarbc/webvuln-runner --pattern '*.tar.gz'
+   gh attestation verify webvuln-runner-2.3.0.tar.gz --repo yusufarbc/webvuln-runner
    ```
 3. installs to `/usr/local/lib/webvuln-runner`, with `webvuln-runner` (and the 1.x name `WebVuln-Runner`) in `/usr/local/bin`.
 
-Options are environment variables: `WVR_RELEASE=v2.2.1`, `WVR_DISTRO=debian|redhat|arch`, `WVR_SKIP_DEPS=1`.
+Options are environment variables: `WVR_RELEASE=v2.3.0`, `WVR_DISTRO=debian|redhat|arch`, `WVR_SKIP_DEPS=1`.
 
 **From a git checkout:** `sudo installers/install-files.sh` installs the files of the checkout. You can also run `src/webvuln-runner` directly without installing.
 
@@ -281,7 +283,7 @@ bats tests/unit                      # unit tests with a fake docker CLI
 bash tests/integration.sh            # end-to-end against a real Docker daemon
 scripts/check-compose-policy.sh      # security rules for every Compose lab
 scripts/ci-local.sh                  # all of the CI checks above in one go
-scripts/labs-smoke.sh [lab ...]      # start every (or the given) lab for real: up, ready, stop, rm
+scripts/labs-smoke.sh [--report-md] [lab ...] # start lab(s) for real, with JSON/MD reporting
 shellcheck -x src/webvuln-runner src/lib/*.sh installers/*.sh installers/*/*.sh scripts/*.sh
 ```
 CI runs all of these on every pull request. The integration test checks that labs bind to `127.0.0.1` and that busy ports are skipped. It also checks that a container not created by WebVuln-Runner survives every command.
@@ -299,14 +301,16 @@ WebVuln-Runner runs labs; it does not scan, test or modify them. The labs' code,
 - Optional local API for the web catalog, with authentication
 
 ## Contributing
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for full guidelines on adding new labs, Compose policies, and running the local test suite.
+
 1. Create a branch: `git checkout -b feature/my-lab`
-2. Add the lab as described in [Adding a lab](#adding-a-lab) and run the tests
+2. Add the lab as described in [Adding a lab](#adding-a-lab) and run `./scripts/ci-local.sh`
 3. Open a pull request describing the lab and how you tested it
 
 Report bugs or request labs at https://github.com/yusufarbc/webvuln-runner/issues.
 
-## Disclaimer
-These applications are intentionally vulnerable. Do not expose them to the internet or run them on production infrastructure. Use them only on systems you own or are authorized to test.
+## Disclaimer & Security Policy
+These applications are intentionally vulnerable. Do not expose them to the internet or run them on production infrastructure. Use them only on systems you own or are authorized to test. See [`SECURITY.md`](SECURITY.md) for the project security policy, threat model, and responsible disclosure procedures.
 
 ## License
 GNU General Public License v3.0 — see [`LICENSE`](LICENSE). Third-party lab images and the adapted Compose files keep their own licenses, noted at the top of each file under `src/compose/`.

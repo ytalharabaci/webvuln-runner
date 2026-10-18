@@ -1,0 +1,61 @@
+name: Bug Report
+description: Report a problem or unexpected behavior with WebVuln-Runner
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue!
+        **Important:** If this is a vulnerability in a third-party lab application (e.g., SQLi in DVWA), please report it to that lab's upstream project. For security issues in WebVuln-Runner itself, see [SECURITY.md](https://github.com/yusufarbc/webvuln-runner/blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: WebVuln-Runner Version
+      description: What version are you running? (Run `webvuln-runner version`)
+      placeholder: "e.g. 2.2.1"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating System & Docker Info
+      description: Linux distribution and Docker version (`docker --version`, `docker compose version`)
+      placeholder: "e.g. Ubuntu 24.04 LTS, Docker 27.0.3, Compose v2.28.1"
+    validations:
+      required: true
+  - type: input
+    id: lab_id
+    attributes:
+      label: Lab ID (if applicable)
+      description: The ID of the affected lab from catalog.json
+      placeholder: "e.g. crapi, dvga, juice-shop"
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Bug
+      description: A clear and concise description of what happened and what you expected to happen instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Exact commands or actions to trigger the behavior.
+      placeholder: |
+        1. Run `webvuln-runner up ...`
+        2. Wait for readiness
+        3. See error ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs or Terminal Output
+      description: Paste any relevant logs from `webvuln-runner logs <name>` or terminal output.
+      render: shell
+    validations:
+      required: false
+

@@ -76,10 +76,12 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#security">Security</a></li>
                     <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
                     <li class="nav-item"><a class="nav-link" href="#applications">Labs</a></li>
                     <li class="nav-item"><a class="nav-link" href="#installation">Installation</a></li>
-                    <li class="nav-item"><a class="nav-link" href="https://github.com/yusufarbc/webvuln-runner"><i
+                    <li class="nav-item"><a class="nav-link" href="#troubleshooting">Troubleshooting</a></li>
+                    <li class="nav-item"><a class="nav-link" href="https://github.com/yusufarbc/webvuln-runner" target="_blank" rel="noopener"><i
                                 class="fab fa-github"></i> GitHub</a></li>
                 </ul>
             </div>
@@ -94,10 +96,26 @@
             <p class="lead mb-4 text-secondary">Start <span id="lab-count">many</span> deliberately vulnerable web apps,
                 APIs and benchmark targets in Docker &mdash; from a terminal menu or one command.</p>
             <a href="#installation" class="btn btn-primary btn-lg px-5">Get Started</a>
-            <a href="https://github.com/yusufarbc/webvuln-runner" class="btn btn-outline-primary btn-lg px-5 ms-2 mt-2 mt-sm-0">View
+            <a href="https://github.com/yusufarbc/webvuln-runner" class="btn btn-outline-primary btn-lg px-5 ms-2 mt-2 mt-sm-0" target="_blank" rel="noopener">View
                 on GitHub</a>
         </div>
     </header>
+
+    <!-- Security Model Callout Banner -->
+    <section id="security" class="py-3 bg-light border-bottom">
+        <div class="container">
+            <div class="alert alert-danger d-flex align-items-center mb-0" role="alert">
+                <i class="fas fa-shield-alt fa-2x me-3 flex-shrink-0"></i>
+                <div>
+                    <h5 class="alert-heading mb-1 fw-bold">Security &amp; Local Isolation Notice</h5>
+                    <p class="mb-0 small">
+                        All labs are <strong>deliberately vulnerable</strong>. By default, WebVuln-Runner binds services strictly to <code>127.0.0.1</code> (loopback) on dedicated bridge networks with <code>no-new-privileges</code> and CPU/memory limits.
+                        Never run labs on production servers or machines with sensitive files. Exposing labs via <code>--bind 0.0.0.0</code> is a warned opt-in meant only for isolated lab environments. Read the full <a href="https://github.com/yusufarbc/webvuln-runner/blob/main/SECURITY.md" class="alert-link" target="_blank" rel="noopener">Security Policy</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Features -->
     <section id="features" class="py-5">
@@ -138,20 +156,32 @@
         <div class="container">
             <div class="text-center mb-4">
                 <h2>Supported Labs</h2>
-                <p class="text-muted">Generated from <a href="https://github.com/yusufarbc/webvuln-runner/blob/main/src/catalog.json">src/catalog.json</a>
+                <p class="text-muted">Generated from <a href="https://github.com/yusufarbc/webvuln-runner/blob/main/src/catalog.json" target="_blank" rel="noopener">src/catalog.json</a>
                     &mdash; the same catalog the tool uses.</p>
             </div>
             <div class="row g-2 mb-3 justify-content-center">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <input id="search" type="search" class="form-control" placeholder="Search by name, stack or description"
                         aria-label="Search labs">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select id="level" class="form-select" aria-label="Filter by level">
                         <option value="">All levels</option>
                         <option value="beginner">Beginner</option>
                         <option value="intermediate">Intermediate</option>
                         <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="stack" class="form-select" aria-label="Filter by technology stack">
+                        <option value="">All technologies / stacks</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="type" class="form-select" aria-label="Filter by lab type">
+                        <option value="">All types (Image &amp; Compose)</option>
+                        <option value="image">Single Container (Image)</option>
+                        <option value="compose">Multi-Container (Compose)</option>
                     </select>
                 </div>
             </div>
@@ -174,9 +204,11 @@
                     <p class="lead">Debian / Ubuntu / Kali, Fedora / RHEL / Rocky / AlmaLinux and Arch Linux.</p>
                     <p>The installer installs Docker and the other dependencies. It then downloads a tagged release,
                         verifies its SHA-256 checksum and installs the <code>webvuln-runner</code> command.</p>
-                    <pre class="bg-dark text-white p-3 rounded"><code>curl -fsSLO https://raw.githubusercontent.com/yusufarbc/webvuln-runner/v2.2.1/installers/install.sh
+                    <pre class="bg-dark text-white p-3 rounded"><code>curl -fsSLO https://raw.githubusercontent.com/yusufarbc/webvuln-runner/v2.3.0/installers/install.sh
 less install.sh        # read it first
 sudo bash install.sh</code></pre>
+                    <p class="small text-muted mb-1">Verify signed build provenance attestation (GitHub CLI):</p>
+                    <pre class="bg-dark text-white p-3 rounded small"><code>gh attestation verify webvuln-runner-2.3.0.tar.gz --repo yusufarbc/webvuln-runner</code></pre>
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle"></i> Docker access is equivalent to root. Run
                         <code>sudo webvuln-runner</code>, or add your user to the <code>docker</code> group knowing what
@@ -202,13 +234,69 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
         </div>
     </section>
 
+    <!-- Troubleshooting & FAQ -->
+    <section id="troubleshooting" class="py-5 bg-light border-top">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2>Troubleshooting &amp; FAQ</h2>
+                <p class="text-muted">Common scenarios and how to resolve them</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary"><i class="fas fa-network-wired me-2"></i>Port Already in Use</h5>
+                            <p class="card-text text-secondary small">
+                                WebVuln-Runner automatically scans for free ports and assigns the next available one. If an explicitly requested port via <code>--port</code> is occupied, choose another port or let the runner auto-select:
+                            </p>
+                            <code class="cmd">webvuln-runner up &lt;lab&gt;   # auto-selects next free port</code>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary"><i class="fas fa-puzzle-piece me-2"></i>Docker Compose Plugin Missing</h5>
+                            <p class="card-text text-secondary small">
+                                Multi-container labs (such as crAPI, NodeGoat, BrokenCrystals) require the Compose v2 plugin. Install it using your distribution package manager:
+                            </p>
+                            <code class="cmd">sudo apt-get install docker-compose-plugin</code>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary"><i class="fas fa-user-shield me-2"></i>Cannot Talk to Docker Daemon</h5>
+                            <p class="card-text text-secondary small">
+                                WebVuln-Runner requires Docker daemon access. Either run with <code>sudo</code> or add your current user to the <code>docker</code> group:
+                            </p>
+                            <code class="cmd">sudo usermod -aG docker $USER &amp;&amp; newgrp docker</code>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary"><i class="fas fa-hourglass-half me-2"></i>Lab Starts But Readiness Times Out</h5>
+                            <p class="card-text text-secondary small">
+                                Heavy stacks (e.g. Java, Keycloak) may take longer to boot on machines with limited resources. Inspect logs or raise the timeout:
+                            </p>
+                            <code class="cmd">WVR_HEALTH_TIMEOUT=180 webvuln-runner up webgoat</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">
         <div class="container text-center">
             <p class="mb-0">&copy; 2026 WebVuln-Runner Project. Developed by <a href="https://github.com/yusufarbc"
-                    class="text-white text-decoration-none">yusufarbc</a>.</p>
+                    class="text-white text-decoration-none" target="_blank" rel="noopener">yusufarbc</a>.</p>
             <small class="text-white-50">Disclaimer: These applications are intentionally vulnerable. Do not run them on
-                production servers or exposed networks.</small>
+                production servers or exposed networks. Read <a href="https://github.com/yusufarbc/webvuln-runner/blob/main/SECURITY.md" class="text-white-50" target="_blank" rel="noopener">SECURITY.md</a>.</small>
         </div>
     </footer>
 
@@ -225,6 +313,9 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
             const filtersEl = document.getElementById("filters");
             const topicsEl = document.getElementById("topics");
             const levelEl = document.getElementById("level");
+            const stackEl = document.getElementById("stack");
+            const typeEl = document.getElementById("type");
+
             const TOPIC_LABELS = {
                 "injection": "Injection", "xss-csrf": "XSS & CSRF", "access-control": "Access control",
                 "authentication": "Authentication", "ssrf": "SSRF", "files": "Files & traversal", "api": "API, GraphQL & gRPC",
@@ -259,7 +350,7 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
                     <div class="card app-card">
                         <div class="card-body d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start mb-1">
-                                <h5 class="card-title mb-0"><a class="text-decoration-none" href="${esc(lab.source)}">${esc(lab.name)}</a></h5>
+                                <h5 class="card-title mb-0"><a class="text-decoration-none" href="${esc(lab.source)}" target="_blank" rel="noopener">${esc(lab.name)}</a></h5>
                                 <span class="badge bg-primary">${esc(CATEGORY_LABELS[lab.category] || lab.category)}</span>
                             </div>
                             <h6 class="card-subtitle mb-2 text-muted small">${esc(lab.image || lab.compose)}</h6>
@@ -278,9 +369,13 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
 
             function render() {
                 const q = searchEl.value.trim().toLowerCase();
+                const selStack = (stackEl.value || "").toLowerCase();
+                const selType = typeEl.value || "";
                 const shown = labs.filter((lab) =>
                     (category === "all" || lab.category === category) &&
                     (!levelEl.value || lab.level === levelEl.value) &&
+                    (!selType || lab.type === selType) &&
+                    (!selStack || (lab.stack || []).some((s) => s.toLowerCase() === selStack)) &&
                     [...topics].every((t) => (lab.topics || []).includes(t)) &&
                     (!q || [lab.id, lab.name, lab.description, ...(lab.stack || []), ...(lab.topics || [])].join(" ").toLowerCase().includes(q)));
                 labsEl.innerHTML = shown.map(card).join("");
@@ -305,6 +400,14 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
                         data-topic="${esc(t)}" aria-pressed="${topics.has(t)}" title="${esc(TOPIC_HINTS[t])}">${esc(TOPIC_LABELS[t])} (${counts[t]})</button>`).join("");
             }
 
+            function renderStackDropdown() {
+                const stacks = new Set();
+                labs.forEach((l) => (l.stack || []).forEach((s) => stacks.add(s)));
+                const sorted = [...stacks].sort((a, b) => a.localeCompare(b));
+                stackEl.innerHTML = '<option value="">All technologies / stacks</option>' +
+                    sorted.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+            }
+
             function toggleTopic(e) {
                 const btn = e.target.closest("button[data-topic]");
                 if (!btn) return;
@@ -325,6 +428,8 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
             labsEl.addEventListener("click", toggleTopic);
             searchEl.addEventListener("input", render);
             levelEl.addEventListener("change", render);
+            stackEl.addEventListener("change", render);
+            typeEl.addEventListener("change", render);
 
             fetch("src/catalog.json")
                 .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
@@ -333,12 +438,13 @@ webvuln-runner rm wvr-crapi --volumes</code></pre>
                     document.getElementById("lab-count").textContent = labs.length;
                     renderFilters();
                     renderTopics();
+                    renderStackDropdown();
                     render();
                 })
                 .catch(() => {
                     statusEl.innerHTML = 'Could not load the catalog. When opening this file locally, serve it over HTTP ' +
                         '(e.g. <code>python3 -m http.server</code>) or see the ' +
-                        '<a href="https://github.com/yusufarbc/webvuln-runner#supported-labs">list on GitHub</a>.';
+                        '<a href="https://github.com/yusufarbc/webvuln-runner#supported-labs" target="_blank" rel="noopener">list on GitHub</a>.';
                 });
         })();
     </script>

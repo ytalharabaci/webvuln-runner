@@ -5,6 +5,21 @@ The release workflow publishes the section of the tagged version as the GitHub r
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-18
+
+### Security
+- Signal handling in `wvr_up`: partial containers and bridge networks are automatically cleaned up on SIGINT/SIGTERM (Ctrl+C), leaving no orphaned resources.
+- Clear error diagnostics and automatic cleanup on host port bind collisions (`port is already allocated`).
+- Added formal `SECURITY.md` establishing the project's vulnerability reporting process, threat model, and local isolation rules.
+
+### Added
+- **WebSocket GOAT** (`wsgoat`): Real-time WebSocket vulnerability training covering CSWSH, authentication bypass, and private messaging logic on port 8096.
+- **VulnerableLightApp** (`vulnerablelightapp`): .NET / ASP.NET Core API security lab covering SQLi, command injection, SSRF, XXE, deserialization, and SIEM logging on port 8097.
+- Catalog expanded to 30 labs across REST, GraphQL, gRPC, WebSocket, AI/MCP, and benchmark categories.
+- Structured testing reports in `scripts/labs-smoke.sh`: `--report-json` and `--report-md` flags to generate verifiable reports with durations, readiness states, and failure diagnostics.
+- Web catalog filters in `index.html`: Technology stack filter (Node.js, Java, Python, PHP, .NET, Go), lab type filter (Image / Compose), prominent Security Notice banner, and Troubleshooting & FAQ section.
+- Open source community health files: `CONTRIBUTING.md`, GitHub issue templates (`bug_report.yml`, `lab_request.yml`, `config.yml`), and PR template.
+
 ## [2.2.1] - 2026-10-18
 
 ### Security
@@ -61,7 +76,8 @@ First release of the rewritten tool.
 - 1.x stopped the image name instead of the container and showed an empty name after creating a lab.
 - Broken catalog entries: XVWA and Hackazon images Docker can no longer pull, the removed DVWS image, the wrong DSVPWA port, DVGA's missing `WEB_HOST`, the Benchmark start command.
 
-[Unreleased]: https://github.com/yusufarbc/webvuln-runner/compare/v2.2.1...HEAD
+[Unreleased]: https://github.com/yusufarbc/webvuln-runner/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/yusufarbc/webvuln-runner/compare/v2.2.1...v2.3.0
 [2.2.1]: https://github.com/yusufarbc/webvuln-runner/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/yusufarbc/webvuln-runner/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/yusufarbc/webvuln-runner/compare/v2.0.0...v2.1.0
