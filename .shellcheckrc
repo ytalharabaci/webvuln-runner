@@ -1,4 +1,4 @@
-# jq programs are single-quoted on purpose.
-disable=SC2016
+# jq programs are single-quoted on purpose. Trap handlers are invoked indirectly.
+disable=SC2016,SC2317,SC2329
 source-path=SCRIPTDIR
 external-sources=true

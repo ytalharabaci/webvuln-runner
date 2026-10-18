@@ -280,7 +280,7 @@ wvr_up_image() {
   [[ -n "$workdir" ]] && args+=(-w "$workdir")
   mapfile -t run_cmd < <(wvr_catalog_get "$id" '(.command // [])[]')
 
-  # shellcheck disable=SC2329 # invoked via trap on INT/TERM
+  # shellcheck disable=SC2317,SC2329 # invoked via trap on INT/TERM
   _wvr_cleanup_up_image() {
     trap - INT TERM
     [[ -n "$created_cid" ]] && docker rm -f "$created_cid" >/dev/null 2>&1
@@ -340,7 +340,7 @@ wvr_up_compose() {
     envs+=("$var=$host")
   done <<<"$plan"
 
-  # shellcheck disable=SC2329 # invoked via trap on INT/TERM
+  # shellcheck disable=SC2317,SC2329 # invoked via trap on INT/TERM
   _wvr_cleanup_up_compose() {
     trap - INT TERM
     env "${envs[@]}" docker compose -p "$name" -f "$file" down --remove-orphans >/dev/null 2>&1
